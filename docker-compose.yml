@@ -1,0 +1,7 @@
+
+services:
+  rabbit_mq_go:
+    image: rabbitmq:4.2-rc-management-alpine
+    ports:
+      - 8080:15672
+      - 5545:5672

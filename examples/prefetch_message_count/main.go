@@ -8,8 +8,6 @@ import (
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
-
-	dto "celery_client/dto/header"
 )
 
 func failOnError(err error, msg string) {
@@ -85,28 +83,8 @@ func main() {
 		nil,          // args
 	)
 	failOnError(err, "Failed to register a consumer")
-	c := 0
+
 	for message := range msgs {
-		// tmp, ok := message.Headers.(map[string]interface{})
-		header, err := dto.MakeHeaderFromMap(message.Headers)
-		if err != nil {
-			log.Fatalln(err)
-			continue
-		}
-
-		if header.Task != "test" {
-			err = message.Nack(false, true)
-			if err != nil {
-				log.Fatalln(err)
-			} else {
-				fmt.Println("task nack")
-			}
-			c++
-			fmt.Println(c)
-			continue
-		}
-
-		fmt.Println(header)
 		fmt.Println("Received a message:", message)
 		fmt.Println("Received a message body:", string(message.Body))
 		//fmt.Println("Received a message task:", string(message.))

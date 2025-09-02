@@ -5,3 +5,9 @@ services:
     ports:
       - "8080:15672"
       - "5545:5672"
+
+  redis_backend:
+    image: redis/redis-stack
+    ports:
+      - "5546:6379"
+      - "8081:8001"

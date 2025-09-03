@@ -61,7 +61,7 @@ def pub_message():
     # res = add.delay(1, 2)
     # print(res.get())
     
-    # res = custom_task.delay({"message": "this is message", "time": datetime.datetime.now(), "sleep_time": 1})#.get()
+    res = custom_task.delay({"message": "this is message", "time": datetime.datetime.now(), "sleep_time": 1})#.get()
     # print("Задача отправлена")
     # print(res)
     # print("Встала на ожидание")

@@ -1,12 +1,22 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
-type BaseMessages interface{}
+type BaseMessages interface {
+	Tmp()
+}
 
 type BaseTasks interface {
-	ParseMessage([]any) (BaseMessages, error)
-	RunTask(BaseMessages) ([]any, error)
+	Run() (any, error)
+	Message() (any, error)
+}
+
+type TaskWrapper struct {
+	RunTask      func(BaseMessages) ([]any, error)
+	ParseMessage func([]any)
 }
 
 type BaseTask struct {
@@ -19,6 +29,7 @@ func NewBaseTask(name string) BaseTask {
 
 type App struct {
 	TasksRegistry map[string]BaseTasks
+	resultCh      chan any
 }
 
 func (a *App) RegisterTask(name string, task BaseTasks) error {
@@ -29,52 +40,66 @@ func (a *App) RegisterTask(name string, task BaseTasks) error {
 	return nil
 }
 
-type AddMessage struct {
-	X, Y float64
-}
-
 type AddTask struct {
+	X, Y float64
 	BaseTask
 }
 
-func (t *AddTask) ParseMessage(data []any) (BaseMessages, error) {
-	mess := &AddMessage{}
-
-	if x, ok := data[0].(float64); ok {
-		mess.X = x
-	} else {
-		return nil, fmt.Errorf("НЕКОРРЕКТНОЕ СООБЩЕНИЕ", data)
-	}
-
-	if y, ok := data[1].(float64); ok {
-		mess.X = y
-	} else {
-		return nil, fmt.Errorf("НЕКОРРЕКТНОЕ СООБЩЕНИЕ", data)
-	}
-
-	return mess, nil
+func (t *AddTask) Message() (any, error) {
+	// Похуй
+	return 1, nil
 }
 
-func (t *AddTask) RunTask(message AddMessage) ([]any, error) {
-	return []any{message.X + message.Y}, nil
+func (t *AddTask) Run() (any, error) {
+	if t == nil {
+		panic("хуй")
+	}
+	return t.X + t.Y, nil
+}
+
+func NewAddTask(x, y float64) AddTask {
+	return AddTask{
+		X:        x,
+		Y:        y,
+		BaseTask: NewBaseTask("add_task"),
+	}
 }
 
 func main() {
 	app := &App{
 		TasksRegistry: map[string]BaseTasks{},
+		resultCh:      make(chan any, 20),
 	}
 
 	// mess := AddMessage{
 	// 	X: 1.2,
 	// 	Y: 2.3,
 	// }
-	task := AddTask{
-		BaseTask: BaseTask{
-			name: "add",
-		},
+	task := NewAddTask(1.2, 2.4)
+
+	err := app.RegisterTask("add", &task)
+	if err != nil {
+		return
 	}
 
-	app.RegisterTask("add", task)
+	wg := sync.WaitGroup{}
 
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		res, err := app.TasksRegistry["add"].Run()
+		if err != nil {
+			return
+		}
+		//fmt.Println(res)
+		app.resultCh <- res
+	}()
+
+	select {
+	case res := <-app.resultCh:
+		fmt.Println(res)
+	}
+
+	wg.Wait()
 	// app.TasksRegistry["add"].
 }

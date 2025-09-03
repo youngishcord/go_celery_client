@@ -1,10 +1,8 @@
 package main
 
 import (
-	"celery_client/worker"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -12,6 +10,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 
 	dto "celery_client/dto/header"
+	app "celery_client/worker"
 )
 
 func failOnError(err error, msg string) {
@@ -38,28 +37,8 @@ type CeleryResult struct {
 }
 
 func main() {
-
-	// немного дебильный метод хранить и вызывать задачи, но исходим из того, что имеем наверное
-	app := worker.Worker{
-		TasksRegistry: map[string]worker.TaskFunc{},
-	}
-
-	app.TasksRegistry["test"] = func(args []interface{}) (interface{}, error) {
-		if len(args) != 2 {
-			return nil, errors.New("args len is error")
-		}
-		a := args[0].(float64)
-		b := args[1].(float64)
-		return a + b, nil
-	}
-
-	result, err := app.TasksRegistry["test"]([]interface{}{3.0, 4.0})
-	if err != nil {
-		return
-	}
-	fmt.Println(result)
-
-	//
+	app.TestF()
+	return
 
 	fmt.Println("Begin")
 

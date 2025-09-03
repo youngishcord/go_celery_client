@@ -9,9 +9,9 @@ app = celery.Celery(
 	broker="amqp://guest:guest@localhost:5545//",
 	backend="rpc://"
 )
-app.conf.worker_prefetch_multiplier = 1  # Только одна задача на процесс
-app.conf.worker_concurrency = 1          # Количество процессов
-app.conf.worker_optimization = 'fair'    # Включаем честное распределение
+# app.conf.worker_prefetch_multiplier = 1  # Только одна задача на процесс
+# app.conf.worker_concurrency = 1          # Количество процессов
+# app.conf.worker_optimization = 'fair'    # Включаем честное распределение
 
 class CustomTask(Task):
     def __init__(self, name, *args, **kwargs):

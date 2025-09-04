@@ -1,4 +1,4 @@
-package dto
+package amqp_models
 
 import (
 	"time"

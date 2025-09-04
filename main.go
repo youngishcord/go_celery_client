@@ -9,8 +9,8 @@ import (
 
 	amqp "github.com/rabbitmq/amqp091-go"
 
+	celery "celery_client/celery_app"
 	dto "celery_client/dto/header"
-	app "celery_client/worker"
 )
 
 func failOnError(err error, msg string) {
@@ -37,8 +37,11 @@ type CeleryResult struct {
 }
 
 func main() {
-	app.TestF()
+	app := celery.NewCeleryApp()
+
 	return
+
+	///////////////////////////////////////////////
 
 	fmt.Println("Begin")
 

@@ -6,10 +6,6 @@ import (
 	"fmt"
 	"log"
 	"time"
-
-	amqp "github.com/rabbitmq/amqp091-go"
-
-	dto "celery_client/dto/header"
 )
 
 func failOnError(err error, msg string) {
@@ -36,8 +32,6 @@ type CeleryResult struct {
 }
 
 func main() {
-	fmt.Println("Begin")
-
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5545/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer func(conn *amqp.Connection) {

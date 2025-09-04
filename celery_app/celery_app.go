@@ -12,6 +12,10 @@ type CeleryApp struct {
 	TaskCh        chan any
 	ResultCh      chan any
 
+	BrokerConn  string // Наверное структура или интерфейс, которая описывает подключение к брокеру
+	BackendConn string // Наверное структура или интерфейс, которая описывает подключение к бекенду
+	// думаю всетаки интерфейсы, поскольку и брокер и бекенд могут быть разными (redis и rabbit)
+
 	appConf conf.CeleryConf
 }
 
@@ -47,6 +51,7 @@ func (a *CeleryApp) Get(task BaseTasks) CeleryResult {
 }
 
 func NewCeleryApp(conf conf.CeleryConf) CeleryApp {
+
 	return CeleryApp{
 		TasksRegistry: map[string]BaseTasks{},
 		TaskCh:        make(chan any),

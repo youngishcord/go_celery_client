@@ -1,6 +1,8 @@
 import datetime
+import random
 import time
 import celery
+import numpy as np
 from celery import Task
 from celery.result import ResultSet
 
@@ -36,15 +38,15 @@ def pub_message():
     # Много задач с ожиданием 
     ####################################################
     ####################################################
-    hub = []
-    ch = celery.chain(add.s(), counter.s())
-    for i in range(10):
-        res = ch(1, 2)# .get()
-        print(res)
-        hub.append(res)
-    
-    res = ResultSet(hub).join()
-    print(res)
+    # hub = []
+    # ch = celery.chain(add.s(), counter.s())
+    # for i in range(10):
+    #     res = ch(1, 2)# .get()
+    #     print(res)
+    #     hub.append(res)
+    #
+    # res = ResultSet(hub).join()
+    # print(res)
     ####################################################
     ####################################################
     ####################################################
@@ -56,12 +58,18 @@ def pub_message():
     # Кастомная задача
     ####################################################
     ####################################################
-    # custom_task = CustomTask("test_task").s().set(queue="qwer")
 
     # res = add.delay(1, 2)
     # print(res.get())
-    
-    res = custom_task.delay({"message": "this is message", "time": datetime.datetime.now(), "sleep_time": 1})#.get()
+
+    while 1:
+        time.sleep(random.random())
+        custom_task = CustomTask("test_task").s().set(queue="qwer")
+        res = custom_task.delay({"message": "this is message", "time": datetime.datetime.now(), "sleep_time": 1})#.get()
+
+        time.sleep(random.random())
+        custom_task = CustomTask("test_task").s().set(queue="asdf")
+        res = custom_task.delay(1, 2, 3)#.get()
     # print("Задача отправлена")
     # print(res)
     # print("Встала на ожидание")

@@ -1,7 +1,9 @@
 package main
 
 import (
-	. "celery_client/celery_app/core/broker/amqp"
+	celery "celery_client/celery_app"
+	"celery_client/celery_app/celery_conf"
+	"celery_client/celery_app/dto"
 	"log"
 )
 
@@ -29,14 +31,30 @@ type CeleryResult struct {
 }
 
 func main() {
-	rabbit := NewAMQPBroker("localhost", "5545", "guest", "guest")
 
-	err := rabbit.Connect([]string{"qwer", "asdf"})
-	if err != nil {
-		return
-	}
+	app := celery.NewCeleryApp(celery_conf.CeleryConf{
+		Broker: dto.Connection{
+			Host: "localhost",
+			Port: "5545",
+			User: "guest",
+			Pass: "guest",
+		},
+		Backend: dto.Connection{},
+		Queues:  []string{"qwer", "asdf"},
+	})
 
 	for {
-		log.Println(string((<-rabbit.RawTaskCh).Body))
+		log.Println(<-app.TaskPoolCh)
 	}
+
+	// rabbit := NewAMQPBroker("localhost", "5545", "guest", "guest")
+
+	// err := rabbit.Connect([]string{"qwer", "asdf"})
+	// if err != nil {
+	// 	return
+	// }
+
+	// for {
+	// 	log.Println(string((<-rabbit.RawTaskCh).Body))
+	// }
 }

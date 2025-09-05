@@ -1,7 +1,10 @@
 package celery_conf
 
+import dto "celery_client/celery_app/dto"
+
 // Надо посмотреть какие настройки я могу перенести
 type CeleryConf struct {
-	Broker  string
-	Backend string
+	Broker  dto.Connection
+	Backend dto.Connection
+	Queues  []string
 }

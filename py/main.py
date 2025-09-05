@@ -31,7 +31,14 @@ def counter(c):
 
 def pub_message():
     
+    # chain
+    # t1 = CustomTask("test_task1").s().set(queue="qwer")
+    # t2 = CustomTask("test_task2").s().set(queue="asdf")
+    # t3 = CustomTask("test_task3").s().set(queue="qwer")
     
+    # ch = t1 | t2 | t3
+    
+    # ch.delay("q1w2e3r4")
     
     ####################################################
     ####################################################
@@ -59,17 +66,17 @@ def pub_message():
     ####################################################
     ####################################################
 
-    # res = add.delay(1, 2)
+    res = add.delay(1, 2)
     # print(res.get())
 
-    while 1:
-        time.sleep(random.random())
-        custom_task = CustomTask("test_task").s().set(queue="qwer")
-        res = custom_task.delay({"message": "this is message", "time": datetime.datetime.now(), "sleep_time": 1})#.get()
+    # while 1:
+    #     time.sleep(random.random())
+    #     custom_task = CustomTask("test_task").s().set(queue="qwer")
+    #     res = custom_task.delay({"message": "this is message", "time": datetime.datetime.now(), "sleep_time": 1})#.get()
 
-        time.sleep(random.random())
-        custom_task = CustomTask("test_task").s().set(queue="asdf")
-        res = custom_task.delay(1, 2, 3)#.get()
+    #     time.sleep(random.random())
+    #     custom_task = CustomTask("test_task").s().set(queue="asdf")
+    #     res = custom_task.delay(1, 2, 3)#.get()
     # print("Задача отправлена")
     # print(res)
     # print("Встала на ожидание")

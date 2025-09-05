@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 
+	q "celery_client/celery_app/core/broker/amqp/queue"
+
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -34,11 +36,32 @@ func (b *AMQPBroker) url() string {
 	return fmt.Sprintf("amqp://%s:%s@%s:%s/", b.user, b.pass, b.Host, b.Port)
 }
 
+func (b *AMQPBroker) declareQueue(queue q.Queue) {
+	if b.Channel == nil {
+		panic("CHANNEL NOT OPEN")
+	}
+
+	_, err := b.Channel.QueueDeclare(
+		queue.Name,
+		queue.Durable,
+		queue.AutoDelete,
+		queue.Exclusive,
+		queue.NoWait,
+		queue.Args,
+	)
+	if err != nil {
+		panic("QUEUE WAS NOT DECLARED")
+	}
+
+}
+
 func (b *AMQPBroker) Connect(queues []string) error {
 	conn, err := amqp.Dial(b.url())
 	if err != nil {
 		panic("NO RABBITMQ CONNECTION")
 	}
+
+	// TODO: надо придумать, где будут деферы для закрыти подключений
 	//defer func(conn *amqp.Connection) {
 	//	err := conn.Close()
 	//	if err != nil {
@@ -59,7 +82,8 @@ func (b *AMQPBroker) Connect(queues []string) error {
 	}
 	b.Channel = ch
 
-	// Это надо как то вынести в отдельное место
+	// TODO: Это надо как то вынести в отдельное место
+	// Это конфиг, который должен быть настраиваемый снаружи
 	err = ch.Qos(
 		2,     // prefetch count
 		0,     // prefetch size (0 means unlimited)
@@ -69,13 +93,17 @@ func (b *AMQPBroker) Connect(queues []string) error {
 		panic("BAD QOS SETTINGS")
 	}
 
+	// Это только консьюмеры на каждую очередь
 	for index, queue := range queues {
+		b.declareQueue(*q.NewDefaultQueue(queue))
+
 		go func(queue string, ch *amqp.Channel) {
 			// TODO: Нужен контекст?
 			// TODO: Надо сделать проверку что очередь существует
-			msgs, err := ch.Consume(queue,
+			msgs, err := ch.Consume(
+				queue,
 				fmt.Sprintf("consumer_%d", index), // index
-				true,
+				true,                              // autoAck должен быть false по идее
 				false,
 				false,
 				false,

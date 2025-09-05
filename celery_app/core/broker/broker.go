@@ -1,5 +1,6 @@
 package broker
 
 type Broker interface {
-	Connect()
+	Connect(queues []string) error
+	TaskChannel() *chan 
 }

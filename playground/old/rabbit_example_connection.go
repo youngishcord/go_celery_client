@@ -58,15 +58,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// q, err := ch.QueueDeclare(
-	// 	"celery", // name
-	// 	false,    // durable
-	// 	false,    // delete when unused
-	// 	false,    // exclusive
-	// 	false,    // no-wait
-	// 	nil,      // arguments
-	// )
-	// failOnError(err, "Fail on declare a queue")
+	q, err := ch.QueueDeclare(
+		"celery", // name
+		false,    // durable
+		false,    // delete when unused
+		false,    // exclusive
+		false,    // no-wait
+		nil,      // arguments
+	)
+	failOnError(err, "Fail on declare a queue")
 
 	msgs, err := ch.Consume(
 		// Указание очереди

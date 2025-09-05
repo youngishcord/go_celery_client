@@ -1,0 +1,37 @@
+[
+    [
+        "q1w2e3r4"
+    ],
+    {},
+    {
+        "callbacks": null,
+        "errbacks": null,
+        "chain": [
+            {
+                "task": "test_task3",
+                "args": [],
+                "kwargs": {},
+                "options": {
+                    "queue": "qwer",
+                    "task_id": "c879383b-38a9-4b43-89e5-afd70cc5f178",
+                    "reply_to": "bf98a7af-de23-3cba-8482-05935bea0af4"
+                },
+                "subtask_type": null,
+                "immutable": false
+            },
+            {
+                "task": "test_task2",
+                "args": [],
+                "kwargs": {},
+                "options": {
+                    "queue": "asdf",
+                    "task_id": "38937885-a272-4af1-b71a-df1e35a92266",
+                    "reply_to": "bf98a7af-de23-3cba-8482-05935bea0af4"
+                },
+                "subtask_type": null,
+                "immutable": false
+            }
+        ],
+        "chord": null
+    }
+]

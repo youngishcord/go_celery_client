@@ -54,6 +54,7 @@ func (t *AddTask) Run() (any, error) {
 	if t == nil {
 		panic("хуй")
 	}
+	fmt.Println("this is add task")
 	return t.X + t.Y, nil
 }
 

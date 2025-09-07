@@ -18,6 +18,6 @@ type CeleryResult struct {
 	TaskID uuid.UUID
 }
 
-func NewCeleryResult(status Status, result Serializable, trace stringб) {
+func NewCeleryResult(status Status, result Serializable, trace string) {
 
 }

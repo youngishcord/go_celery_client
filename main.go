@@ -4,6 +4,8 @@ import (
 	celery "celery_client/celery_app"
 	"celery_client/celery_app/celery_conf"
 	"celery_client/celery_app/dto"
+	base_tasks "celery_client/celery_app/tasks"
+	"fmt"
 	"log"
 )
 
@@ -42,6 +44,17 @@ func main() {
 		Backend: dto.Connection{},
 		Queues:  []string{"qwer", "asdf"},
 	})
+
+	err := app.RegisterTask("add", base_tasks.NewAddTask)
+	if err != nil {
+		return
+	}
+
+	app.StartMessageDriver()
+	err = app.RunWorker()
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	for {
 		log.Println(<-app.TaskPoolCh)

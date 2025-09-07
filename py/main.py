@@ -25,6 +25,11 @@ def add(x, y):
     # time.sleep(1)
     return x + y
 
+@app.task(name="test", queue="asdf")
+def test(message):
+    print(message)
+    return "YES"
+
 @app.task(name="counter", queue="qwer")
 def counter(c):
     return c+1
@@ -66,8 +71,12 @@ def pub_message():
     ####################################################
     ####################################################
 
-    res = add.delay(1, 2)
+    res = add.apply_async((1, 2,), ignore_result=True)
+    # while 1:
+    #     time.sleep(5)
     # print(res.get())
+
+    # ret = test.delay("это тестовое сообщение")
 
     # while 1:
     #     time.sleep(random.random())

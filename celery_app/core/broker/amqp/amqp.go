@@ -16,10 +16,10 @@ type AMQPBroker struct {
 	Host string
 	Port string
 
+	RawTaskCh chan amqp.Delivery
+
 	user string
 	pass string
-
-	RawTaskCh chan amqp.Delivery
 }
 
 func NewAMQPBroker(host string, port string, user string, pass string) *AMQPBroker {
@@ -30,6 +30,10 @@ func NewAMQPBroker(host string, port string, user string, pass string) *AMQPBrok
 		pass:      pass,
 		RawTaskCh: make(chan amqp.Delivery),
 	}
+}
+
+func (b *AMQPBroker) TaskChannel() chan amqp.Delivery {
+	return b.RawTaskCh
 }
 
 func (b *AMQPBroker) url() string {

@@ -1,12 +1,19 @@
 package base_tasks
 
+import amqp_protocol "celery_client/celery_app/core/message/amqp/protocol"
+
 type BaseTasks interface {
 	Run() (any, error)
 	Message() (any, error)
 }
 
+type TaskConstructor func(message map[string]interface{}) (BaseTasks, error)
+
 type BaseTask struct {
-	name string
+	name   string              `json:"name,omitempty"`
+	args   []any               `json:"args,omitempty"`
+	kwargs map[string]any      `json:"kwargs,omitempty"`
+	embed  amqp_protocol.Embed `json:"embed,omitempty"`
 }
 
 func NewBaseTask(name string) BaseTask {

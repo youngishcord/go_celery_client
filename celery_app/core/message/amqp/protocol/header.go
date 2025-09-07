@@ -1,4 +1,4 @@
-package amqp_models
+package amqp_protocol
 
 import (
 	"time"
@@ -33,7 +33,7 @@ type TimeLimit struct {
 	Hard time.Duration `json:"hard"`
 }
 
-func MakeHeaderFromMap(data amqp.Table) (*Header, error) {
+func MakeHeaderFromTable(data amqp.Table) *Header {
 
 	header := &Header{}
 
@@ -130,5 +130,5 @@ func MakeHeaderFromMap(data amqp.Table) (*Header, error) {
 		header.ReplacedTaskNesting = nesting
 	}
 
-	return header, nil
+	return header
 }

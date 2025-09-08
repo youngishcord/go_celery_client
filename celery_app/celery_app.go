@@ -2,7 +2,9 @@ package celery_app
 
 import (
 	conf "celery_client/celery_app/celery_conf"
-	b "celery_client/celery_app/core/broker"
+	back "celery_client/celery_app/core/backend"
+	backend "celery_client/celery_app/core/backend/amqp"
+	brok "celery_client/celery_app/core/broker"
 	"log"
 
 	amqpBroker "celery_client/celery_app/core/broker/amqp"
@@ -19,8 +21,8 @@ type CeleryApp struct {
 	TaskPoolCh    chan BaseTasks
 	ResultCh      chan any
 
-	Broker      b.Broker // Наверное структура или интерфейс, которая описывает подключение к брокеру
-	BackendConn string   // Наверное структура или интерфейс, которая описывает подключение к бекенду
+	Broker  brok.Broker  // Наверное структура или интерфейс, которая описывает подключение к брокеру
+	Backend back.Backend // Наверное структура или интерфейс, которая описывает подключение к бекенду
 	// думаю всетаки интерфейсы, поскольку и брокер и бекенд могут быть разными (redis и rabbit)
 
 	appConf conf.CeleryConf
@@ -40,8 +42,22 @@ func (a *CeleryApp) GetTask(name string) (BaseTasks, error) {
 	return nil, nil
 }
 
+func (a *CeleryApp) celeryStartupMessage() {
+	fmt.Println("Hello from CeleryApp")
+	fmt.Printf("App listen %d queues: ", len(a.appConf.Queues))
+	for _, q := range a.appConf.Queues {
+		fmt.Printf("%s, ", q)
+	}
+	fmt.Println("\nRegistered tasks:")
+	for name := range a.TasksRegistry {
+		fmt.Println("\t.", name)
+	}
+}
+
 // RunWorker Запуск основного треда воркера
 func (a *CeleryApp) RunWorker() error {
+	a.celeryStartupMessage()
+
 	//for i := 0; i < 1; i++ {
 	go func() {
 		for task := range a.TaskPoolCh {
@@ -103,8 +119,9 @@ func (a *CeleryApp) MakeTask(task amqp.Delivery) {
 }
 
 func (a *CeleryApp) StartMessageDriver() {
+	rawTaskChannel := a.Broker.TaskChannel()
 	go func() {
-		for rawTask := range a.Broker.TaskChannel() {
+		for rawTask := range rawTaskChannel {
 			a.MakeTask(rawTask)
 		}
 	}()
@@ -117,19 +134,30 @@ func NewCeleryApp(conf conf.CeleryConf) *CeleryApp {
 		TaskPoolCh:    make(chan BaseTasks, 5), // по количеству запускаемых воркеров?
 		ResultCh:      make(chan any),
 		Broker: amqpBroker.NewAMQPBroker(
-			conf.Broker.Host,
-			conf.Broker.Port,
-			conf.Broker.User,
-			conf.Broker.Pass,
+			conf.Broker.ConnectionData.Host,
+			conf.Broker.ConnectionData.Port,
+			conf.Broker.ConnectionData.User,
+			conf.Broker.ConnectionData.Pass,
 		),
-		appConf:     conf,
-		BackendConn: "",
+		Backend: nil,
+		appConf: conf,
 	}
 
 	err := app.Broker.Connect(conf.Queues)
 	if err != nil {
 		return nil
 	}
+
+	switch conf.Backend.BackendType {
+	case "RPC":
+		connection := app.Broker.Connection()
+		channel, err := connection.Channel()
+		if err != nil {
+			return nil
+		}
+		backend.NewAMQPBackend(channel)
+	}
+
 	//app.TaskPoolCh <- app.Broker.TaskChannel()
 
 	return app

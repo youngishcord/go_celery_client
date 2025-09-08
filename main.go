@@ -35,14 +35,20 @@ type CeleryResult struct {
 func main() {
 
 	app := celery.NewCeleryApp(celery_conf.CeleryConf{
-		Broker: dto.Connection{
-			Host: "localhost",
-			Port: "5545",
-			User: "guest",
-			Pass: "guest",
+		Broker: dto.BrokerDto{
+			BrokerType: "RabbitMQ",
+			ConnectionData: dto.Connection{
+				Host: "localhost",
+				Port: "5545",
+				User: "guest",
+				Pass: "guest",
+			},
 		},
-		Backend: dto.Connection{},
-		Queues:  []string{"qwer", "asdf"},
+		Backend: dto.BackendDto{
+			BackendType:    "RPC",
+			ConnectionData: dto.Connection{},
+		},
+		Queues: []string{"qwer", "asdf"},
 	})
 
 	err := app.RegisterTask("add", base_tasks.NewAddTask)
@@ -56,9 +62,12 @@ func main() {
 		fmt.Println(err)
 	}
 
-	for {
-		log.Println(<-app.TaskPoolCh)
-	}
+	exitCh := make(chan int)
+	<-exitCh
+
+	//for {
+	//	log.Println(<-app.TaskPoolCh)
+	//}
 
 	// rabbit := NewAMQPBroker("localhost", "5545", "guest", "guest")
 

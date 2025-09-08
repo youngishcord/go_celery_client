@@ -22,14 +22,9 @@ type AMQPBroker struct {
 	pass string
 }
 
-func NewAMQPBroker(host string, port string, user string, pass string) *AMQPBroker {
-	return &AMQPBroker{
-		Host:      host,
-		Port:      port,
-		user:      user,
-		pass:      pass,
-		RawTaskCh: make(chan amqp.Delivery),
-	}
+func (b *AMQPBroker) Connection() amqp.Connection {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (b *AMQPBroker) TaskChannel() chan amqp.Delivery {
@@ -65,7 +60,7 @@ func (b *AMQPBroker) Connect(queues []string) error {
 		panic("NO RABBITMQ CONNECTION")
 	}
 
-	// TODO: надо придумать, где будут деферы для закрыти подключений
+	// TODO: надо придумать, где будут деферы для закрытия подключений
 	//defer func(conn *amqp.Connection) {
 	//	err := conn.Close()
 	//	if err != nil {
@@ -106,8 +101,9 @@ func (b *AMQPBroker) Connect(queues []string) error {
 			// TODO: Надо сделать проверку что очередь существует
 			msgs, err := ch.Consume(
 				queue,
+				// TODO: тут надо сделать кастомное имя для консюмера
 				fmt.Sprintf("consumer_%d", index), // index
-				true,                              // autoAck должен быть false по идее
+				true,                              // TODO: autoAck должен быть false по идее
 				false,
 				false,
 				false,
@@ -124,4 +120,14 @@ func (b *AMQPBroker) Connect(queues []string) error {
 	}
 
 	return nil
+}
+
+func NewAMQPBroker(host string, port string, user string, pass string) *AMQPBroker {
+	return &AMQPBroker{
+		Host:      host,
+		Port:      port,
+		user:      user,
+		pass:      pass,
+		RawTaskCh: make(chan amqp.Delivery),
+	}
 }

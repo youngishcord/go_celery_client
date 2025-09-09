@@ -1,9 +1,16 @@
 package backend
 
+import (
+	celery "celery_client/celery_app/core/message/result"
+)
+
 type Backend interface {
-	MakeResult() error
-	Connect() error
+	// PublishResult(taskID string, body []byte, headers map[string]any) error
+	PublishResult(result celery.CeleryResult) error
+	ConsumeResult(taskID string) (<-chan celery.CeleryResult, error)
 }
+
+// конструктор отвечает за подключение,
 
 //func NewBackend(backend dto.BackendDto) Backend {
 //	switch backend.BackendType {

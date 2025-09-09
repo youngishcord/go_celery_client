@@ -6,5 +6,7 @@ type Broker interface {
 	Connect(queues []string) error
 	TaskChannel() chan amqp.Delivery // Я только что понял, что этот интерфейс не
 	// будет работать с Redis, поскольку он не универсален
+	// Consume() (<-chan UniversalMessageCustomType)
+
 	Connection() amqp.Connection
 }

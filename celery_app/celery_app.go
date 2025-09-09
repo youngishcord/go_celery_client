@@ -115,7 +115,6 @@ func (a *CeleryApp) MakeTask(task amqp.Delivery) {
 
 	a.TaskPoolCh <- newTask
 
-	return
 }
 
 func (a *CeleryApp) StartMessageDriver() {
@@ -127,26 +126,30 @@ func (a *CeleryApp) StartMessageDriver() {
 	}()
 }
 
+func NewBrokerAndBackend(conf conf.CeleryConf) (broker brok.Broker, backend back.Backend) {
+	switch conf.Broker.BrokerType {
+	case "RabbitMQ":
+		broker = amqpBroker.NewAMQPBroker(conf)
+	}
+}
+
 func NewCeleryApp(conf conf.CeleryConf) *CeleryApp {
+
+	broker, backend := NewBrokerAndBackend()
 
 	app := &CeleryApp{
 		TasksRegistry: map[string]func(message []byte) (BaseTasks, error){},
 		TaskPoolCh:    make(chan BaseTasks, 5), // по количеству запускаемых воркеров?
 		ResultCh:      make(chan any),
-		Broker: amqpBroker.NewAMQPBroker(
-			conf.Broker.ConnectionData.Host,
-			conf.Broker.ConnectionData.Port,
-			conf.Broker.ConnectionData.User,
-			conf.Broker.ConnectionData.Pass,
-		),
-		Backend: nil,
-		appConf: conf,
+		Broker:        nil,
+		Backend:       nil,
+		appConf:       conf,
 	}
 
-	err := app.Broker.Connect(conf.Queues)
-	if err != nil {
-		return nil
-	}
+	// err := app.Broker.Connect(conf.Queues)
+	// if err != nil {
+	// 	return nil
+	// }
 
 	switch conf.Backend.BackendType {
 	case "RPC":

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 
+	conf "celery_client/celery_app/celery_conf"
 	q "celery_client/celery_app/core/broker/amqp/queue"
+	r "celery_client/celery_app/core/message/result"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -122,12 +124,25 @@ func (b *AMQPBroker) Connect(queues []string) error {
 	return nil
 }
 
-func NewAMQPBroker(host string, port string, user string, pass string) *AMQPBroker {
-	return &AMQPBroker{
-		Host:      host,
-		Port:      port,
-		user:      user,
-		pass:      pass,
+// Отношение к интерфейсу backend при работе с RPC
+func PublishResult(result r.CeleryResult) error {
+	return nil
+}
+
+// Отношение к интерфейсу backend при работе с RPC
+func ConsumeResult(taskID string) (<-chan r.CeleryResult, error) {
+	ch := make(chan r.CeleryResult, 2)
+	return ch, nil
+}
+
+func NewAMQPBroker(conf conf.CeleryConf) *AMQPBroker {
+	broker := &AMQPBroker{
+		Host:      conf.Broker.ConnectionData.Host,
+		Port:      conf.Broker.ConnectionData.Port,
+		user:      conf.Broker.ConnectionData.User,
+		pass:      conf.Broker.ConnectionData.Pass,
 		RawTaskCh: make(chan amqp.Delivery),
 	}
+
+	return broker
 }

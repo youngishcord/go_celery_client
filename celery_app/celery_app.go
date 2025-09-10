@@ -2,18 +2,14 @@ package celery_app
 
 import (
 	conf "celery_client/celery_app/celery_conf"
-	back "celery_client/celery_app/core/backend"
-	backend "celery_client/celery_app/core/backend/amqp"
-	brok "celery_client/celery_app/core/broker"
-	"log"
+	interf "celery_client/celery_app/core/interfaces"
+	"celery_client/celery_app/dto"
 
-	amqpBroker "celery_client/celery_app/core/broker/amqp"
-	. "celery_client/celery_app/core/message/amqp/protocol"
+	rabbit "celery_client/celery_app/core/implementations/rabbitmq"
+	// . "celery_client/celery_app/core/message/amqp/protocol"
 	. "celery_client/celery_app/core/message/result"
 	. "celery_client/celery_app/tasks"
 	"fmt"
-
-	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type CeleryApp struct {
@@ -21,8 +17,8 @@ type CeleryApp struct {
 	TaskPoolCh    chan BaseTasks
 	ResultCh      chan any
 
-	Broker  brok.Broker  // Наверное структура или интерфейс, которая описывает подключение к брокеру
-	Backend back.Backend // Наверное структура или интерфейс, которая описывает подключение к бекенду
+	Broker  interf.Broker  // Наверное структура или интерфейс, которая описывает подключение к брокеру
+	Backend interf.Backend // Наверное структура или интерфейс, которая описывает подключение к бекенду
 	// думаю всетаки интерфейсы, поскольку и брокер и бекенд могут быть разными (redis и rabbit)
 
 	appConf conf.CeleryConf
@@ -78,18 +74,20 @@ func (a *CeleryApp) RunWorker() error {
 // Метод должен возвращать сущность задачи, которую можно поставить на
 // ожидание и получить результат.
 func (a *CeleryApp) Delay(task_name string, args []any, kwargs map[any]any) BaseTasks {
-	return nil
+	panic("IMPLEMENT ME")
 }
 
 // Get Получение результата задачи по ее сущности из backend
 func (a *CeleryApp) Get(task BaseTasks) CeleryResult {
-	return CeleryResult{}
+	panic("IMPLEMENT ME")
 }
 
-func (a *CeleryApp) MakeTask(task amqp.Delivery) {
+func (a *CeleryApp) MakeTask(task dto.CeleryRawTask) {
 	//task :=
 	fmt.Println(task)
-	header := MakeHeaderFromTable(task.Headers)
+
+	// header := MakeHeaderFromTable(task.Headers)
+
 	//if err != nil {
 	//	err := task.Nack(false, false)
 	//	if err != nil {
@@ -97,28 +95,28 @@ func (a *CeleryApp) MakeTask(task amqp.Delivery) {
 	//	}
 	//}
 
-	fmt.Println(header)
+	// fmt.Println(header)
 
-	fmt.Println("TASK NAME")
-	fmt.Println(header.Task)
+	// fmt.Println("TASK NAME")
+	// fmt.Println(header.Task)
 
 	//a.TaskPoolCh <-
 	//task.Ack()
 
-	f, ok := a.TasksRegistry[header.Task]
-	if !ok {
-		log.Println("TASK NOT FOUND")
-		return
-	}
+	// f, ok := a.TasksRegistry[header.Task]
+	// if !ok {
+	// 	log.Println("TASK NOT FOUND")
+	// 	return
+	// }
 
-	newTask, _ := f(task.Body)
+	// newTask, _ := f(task.Body)
 
-	a.TaskPoolCh <- newTask
+	// a.TaskPoolCh <- newTask
 
 }
 
 func (a *CeleryApp) StartMessageDriver() {
-	rawTaskChannel := a.Broker.TaskChannel()
+	rawTaskChannel := a.Broker.ConsumeTask()
 	go func() {
 		for rawTask := range rawTaskChannel {
 			a.MakeTask(rawTask)
@@ -126,23 +124,37 @@ func (a *CeleryApp) StartMessageDriver() {
 	}()
 }
 
-func NewBrokerAndBackend(conf conf.CeleryConf) (broker brok.Broker, backend back.Backend) {
+func NewBrokerAndBackend(conf conf.CeleryConf) (interf.Broker, interf.Backend) {
+	// TODO: расширение функциональности для работы с redis
+	var broker interf.Broker
+	var backend interf.Backend
+	// var err error
+
 	switch conf.Broker.BrokerType {
 	case "RabbitMQ":
-		broker = amqpBroker.NewAMQPBroker(conf)
+		broker = rabbit.NewAMQPBroker(conf)
 	}
+
+	switch conf.Backend.BackendType {
+	case "RPC":
+		if tmp, ok := broker.(interf.Backend); ok {
+			backend = tmp
+		}
+	}
+
+	return broker, backend
 }
 
 func NewCeleryApp(conf conf.CeleryConf) *CeleryApp {
 
-	broker, backend := NewBrokerAndBackend()
+	broker, backend := NewBrokerAndBackend(conf)
 
 	app := &CeleryApp{
 		TasksRegistry: map[string]func(message []byte) (BaseTasks, error){},
 		TaskPoolCh:    make(chan BaseTasks, 5), // по количеству запускаемых воркеров?
 		ResultCh:      make(chan any),
-		Broker:        nil,
-		Backend:       nil,
+		Broker:        broker,
+		Backend:       backend,
 		appConf:       conf,
 	}
 
@@ -151,15 +163,15 @@ func NewCeleryApp(conf conf.CeleryConf) *CeleryApp {
 	// 	return nil
 	// }
 
-	switch conf.Backend.BackendType {
-	case "RPC":
-		connection := app.Broker.Connection()
-		channel, err := connection.Channel()
-		if err != nil {
-			return nil
-		}
-		backend.NewAMQPBackend(channel)
-	}
+	// switch conf.Backend.BackendType {
+	// case "RPC":
+	// 	connection := app.Broker.Connection()
+	// 	channel, err := connection.Channel()
+	// 	if err != nil {
+	// 		return nil
+	// 	}
+	// 	backend.NewAMQPBackend(channel)
+	// }
 
 	//app.TaskPoolCh <- app.Broker.TaskChannel()
 

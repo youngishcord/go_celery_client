@@ -1,62 +1,32 @@
-package broker
+package rabbit
 
 import (
 	"fmt"
 	"log"
 
 	conf "celery_client/celery_app/celery_conf"
-	q "celery_client/celery_app/core/broker/amqp/queue"
-	r "celery_client/celery_app/core/message/result"
+	q "celery_client/celery_app/core/implementations/rabbitmq/queue"
+	"celery_client/celery_app/dto"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-type AMQPBroker struct {
+// Структура, хранящее подключение к RabbitMQ
+type RabbitMQBroker struct {
 	Conn    *amqp.Connection
 	Channel *amqp.Channel
 
 	Host string
 	Port string
 
-	RawTaskCh chan amqp.Delivery
+	RawTaskCh chan dto.CeleryRawTask
+	ResultCh  chan string // Служит для возврата результатов, если используется RPC backend
 
 	user string
 	pass string
 }
 
-func (b *AMQPBroker) Connection() amqp.Connection {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (b *AMQPBroker) TaskChannel() chan amqp.Delivery {
-	return b.RawTaskCh
-}
-
-func (b *AMQPBroker) url() string {
-	return fmt.Sprintf("amqp://%s:%s@%s:%s/", b.user, b.pass, b.Host, b.Port)
-}
-
-func (b *AMQPBroker) declareQueue(queue q.Queue) {
-	if b.Channel == nil {
-		panic("CHANNEL NOT OPEN")
-	}
-
-	_, err := b.Channel.QueueDeclare(
-		queue.Name,
-		queue.Durable,
-		queue.AutoDelete,
-		queue.Exclusive,
-		queue.NoWait,
-		queue.Args,
-	)
-	if err != nil {
-		panic("QUEUE WAS NOT DECLARED")
-	}
-
-}
-
-func (b *AMQPBroker) Connect(queues []string) error {
+func (b *RabbitMQBroker) connect(conf conf.CeleryConf) error {
 	conn, err := amqp.Dial(b.url())
 	if err != nil {
 		panic("NO RABBITMQ CONNECTION")
@@ -95,7 +65,7 @@ func (b *AMQPBroker) Connect(queues []string) error {
 	}
 
 	// Это только консьюмеры на каждую очередь
-	for index, queue := range queues {
+	for index, queue := range conf.Queues {
 		b.declareQueue(*q.NewDefaultQueue(queue))
 
 		go func(queue string, ch *amqp.Channel) {
@@ -103,7 +73,7 @@ func (b *AMQPBroker) Connect(queues []string) error {
 			// TODO: Надо сделать проверку что очередь существует
 			msgs, err := ch.Consume(
 				queue,
-				// TODO: тут надо сделать кастомное имя для консюмера
+				// TODO: тут надо сделать кастомное имя для консюмера из конфигурации
 				fmt.Sprintf("consumer_%d", index), // index
 				true,                              // TODO: autoAck должен быть false по идее
 				false,
@@ -115,8 +85,11 @@ func (b *AMQPBroker) Connect(queues []string) error {
 				log.Fatal(err)
 			}
 			for d := range msgs {
-				//fmt.Println(string(d.Body))
-				b.RawTaskCh <- d
+				fmt.Println(string(d.Body))
+				// b.RawTaskCh <- d
+				b.RawTaskCh <- dto.CeleryRawTask{
+					TestMessage: "TEST MESSAGE",
+				}
 			}
 		}(queue, ch)
 	}
@@ -124,25 +97,16 @@ func (b *AMQPBroker) Connect(queues []string) error {
 	return nil
 }
 
-// Отношение к интерфейсу backend при работе с RPC
-func PublishResult(result r.CeleryResult) error {
-	return nil
-}
-
-// Отношение к интерфейсу backend при работе с RPC
-func ConsumeResult(taskID string) (<-chan r.CeleryResult, error) {
-	ch := make(chan r.CeleryResult, 2)
-	return ch, nil
-}
-
-func NewAMQPBroker(conf conf.CeleryConf) *AMQPBroker {
-	broker := &AMQPBroker{
+func NewAMQPBroker(conf conf.CeleryConf) *RabbitMQBroker {
+	broker := &RabbitMQBroker{
 		Host:      conf.Broker.ConnectionData.Host,
 		Port:      conf.Broker.ConnectionData.Port,
 		user:      conf.Broker.ConnectionData.User,
 		pass:      conf.Broker.ConnectionData.Pass,
-		RawTaskCh: make(chan amqp.Delivery),
+		RawTaskCh: make(chan dto.CeleryRawTask),
 	}
+
+	broker.connect(conf)
 
 	return broker
 }

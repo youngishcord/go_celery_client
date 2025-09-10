@@ -1,4 +1,4 @@
-package backend
+package interfaces
 
 import (
 	celery "celery_client/celery_app/core/message/result"

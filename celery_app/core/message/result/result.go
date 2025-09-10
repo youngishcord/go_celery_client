@@ -11,6 +11,7 @@ type Serializable interface {
 	json.Unmarshaler
 }
 
+// TODO: Возможно необходимо перенести это в dto
 type CeleryResult struct {
 	Status Status
 	Result Serializable
@@ -18,6 +19,11 @@ type CeleryResult struct {
 	TaskID uuid.UUID
 }
 
-func NewCeleryResult(status Status, result Serializable, trace string) {
-
+func NewCeleryResult(status Status, result Serializable, trace string, taskID uuid.UUID) CeleryResult {
+	return CeleryResult{
+		Status: status,
+		Result: result,
+		Trace:  trace,
+		TaskID: taskID,
+	}
 }

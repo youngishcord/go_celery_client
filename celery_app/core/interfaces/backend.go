@@ -6,7 +6,7 @@ import (
 
 type Backend interface {
 	// PublishResult(taskID string, body []byte, headers map[string]any) error
-	PublishResult(result celery.CeleryResult) error
+	PublishResult(result celery.CeleryResult, task Tasks) error
 	ConsumeResult(taskID string) (<-chan celery.CeleryResult, error)
 }
 

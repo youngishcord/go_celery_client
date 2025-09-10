@@ -5,7 +5,7 @@ type Tasks interface {
 
 	//Payload() []byte
 
-	//Ack()
-	//Nack()
-	//Reject()
+	Ack()
+	Nack()
+	Reject()
 }

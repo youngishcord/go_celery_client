@@ -15,6 +15,27 @@ type Task struct {
 	Body   protocol.Task
 }
 
+func (t *Task) Reject() {
+	err := t.tmp.Reject(false)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (t *Task) Nack() {
+	err := t.tmp.Nack(false, true)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (t *Task) Ack() {
+	err := t.tmp.Ack(false)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (t *Task) Name() string {
 	return t.Header.Task
 }

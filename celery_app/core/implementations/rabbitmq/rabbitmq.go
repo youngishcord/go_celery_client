@@ -2,6 +2,7 @@ package rabbit
 
 import (
 	interf "celery_client/celery_app/core/interfaces"
+	celery "celery_client/celery_app/core/message/result"
 	"fmt"
 	"log"
 
@@ -20,7 +21,7 @@ type RabbitMQBroker struct {
 	Port string
 
 	RawTaskCh chan interf.Tasks
-	ResultCh  chan string // Служит для возврата результатов, если используется RPC backend
+	ResultCh  chan celery.CeleryResult // Служит для возврата результатов, если используется RPC backend
 
 	user string
 	pass string

@@ -87,9 +87,7 @@ func (b *RabbitMQBroker) connect(conf conf.CeleryConf) error {
 			for d := range msgs {
 				fmt.Println(string(d.Body))
 				// b.RawTaskCh <- d
-				b.RawTaskCh <- dto.CeleryRawTask{
-					TestMessage: "TEST MESSAGE",
-				}
+				b.RawTaskCh <- b.newCeleryTask(d)
 			}
 		}(queue, ch)
 	}

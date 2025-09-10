@@ -6,7 +6,7 @@ import (
 )
 
 // Отношение к интерфейсу backend при работе с RPC
-func (b *RabbitMQBroker) PublishResult(result r.CeleryResult, task interf.Tasks) error {
+func (b *RabbitMQ) PublishResult(result r.CeleryResult, task interf.Tasks) error {
 	// TODO: тут стоит задуматься над тем что будет, если во второй операции выпадет ошибка, а
 	//  первая уже будет выполнена
 	// TODO: Подтверждение результата должно быть другим. Я возвращаю тут результат
@@ -42,7 +42,7 @@ func (b *RabbitMQBroker) PublishResult(result r.CeleryResult, task interf.Tasks)
 }
 
 // Отношение к интерфейсу backend при работе с RPC
-func (b *RabbitMQBroker) ConsumeResult(taskID string) (<-chan r.CeleryResult, error) {
+func (b *RabbitMQ) ConsumeResult(taskID string) (<-chan r.CeleryResult, error) {
 	// TODO: implement me
 	panic("IMPLEMENT ME")
 }

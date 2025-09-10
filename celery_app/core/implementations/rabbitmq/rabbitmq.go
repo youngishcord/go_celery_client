@@ -13,7 +13,7 @@ import (
 )
 
 // Структура, хранящее подключение к RabbitMQ
-type RabbitMQBroker struct {
+type RabbitMQ struct {
 	Conn    *amqp.Connection
 	Channel *amqp.Channel
 
@@ -27,7 +27,7 @@ type RabbitMQBroker struct {
 	pass string
 }
 
-func (b *RabbitMQBroker) connect(conf conf.CeleryConf) error {
+func (b *RabbitMQ) connect(conf conf.CeleryConf) error {
 	conn, err := amqp.Dial(b.url())
 	if err != nil {
 		panic("NO RABBITMQ CONNECTION")
@@ -96,8 +96,8 @@ func (b *RabbitMQBroker) connect(conf conf.CeleryConf) error {
 	return nil
 }
 
-func NewAMQPBroker(conf conf.CeleryConf) *RabbitMQBroker {
-	broker := &RabbitMQBroker{
+func NewAMQPBroker(conf conf.CeleryConf) *RabbitMQ {
+	broker := &RabbitMQ{
 		Host:      conf.Broker.ConnectionData.Host,
 		Port:      conf.Broker.ConnectionData.Port,
 		user:      conf.Broker.ConnectionData.User,

@@ -4,6 +4,6 @@ import (
 	"celery_client/celery_app/core/interfaces"
 )
 
-func (b *RabbitMQBroker) ConsumeTask() <-chan interfaces.Tasks {
+func (b *RabbitMQ) ConsumeTask() <-chan interfaces.Tasks {
 	return b.RawTaskCh
 }

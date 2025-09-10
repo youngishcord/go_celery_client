@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-//func (b *RabbitMQBroker) newCeleryTask(rawTask amqp.Delivery) Task {
+//func (b *RabbitMQ) newCeleryTask(rawTask amqp.Delivery) Task {
 //	//fmt.Println(rawTask)
 //
 //	return Task{
@@ -15,11 +15,11 @@ import (
 //	}
 //}
 
-func (b *RabbitMQBroker) url() string {
+func (b *RabbitMQ) url() string {
 	return fmt.Sprintf("amqp://%s:%s@%s:%s/", b.user, b.pass, b.Host, b.Port)
 }
 
-func (b *RabbitMQBroker) declareQueue(queue q.Queue) {
+func (b *RabbitMQ) declareQueue(queue q.Queue) {
 	if b.Channel == nil {
 		panic("CHANNEL NOT OPEN")
 	}

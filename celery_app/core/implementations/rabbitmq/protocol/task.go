@@ -19,19 +19,19 @@ type Embed struct {
 	Chord     any `json:"chord,omitempty"`
 }
 
-func ParseTask(jsonData []byte) (*Task, error) {
+func ParseTask(jsonData []byte) (Task, error) {
 	fmt.Println(jsonData)
 	var data []any
 	err := json.Unmarshal(jsonData, &data)
 	if err != nil {
-		return nil, err
+		return Task{}, err
 	}
 
 	if len(data) < 3 {
-		return nil, fmt.Errorf("invalid data format: expected 3 elements, got %d", len(data))
+		return Task{}, fmt.Errorf("invalid data format: expected 3 elements, got %d", len(data))
 	}
 
-	task := &Task{
+	task := Task{
 		Embed: Embed{
 			Callbacks: nil,
 			Errbacks:  nil,

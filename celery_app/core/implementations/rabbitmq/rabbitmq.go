@@ -1,12 +1,12 @@
 package rabbit
 
 import (
+	interf "celery_client/celery_app/core/interfaces"
 	"fmt"
 	"log"
 
 	conf "celery_client/celery_app/celery_conf"
 	q "celery_client/celery_app/core/implementations/rabbitmq/queue"
-	"celery_client/celery_app/dto"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -19,7 +19,7 @@ type RabbitMQBroker struct {
 	Host string
 	Port string
 
-	RawTaskCh chan dto.CeleryRawTask
+	RawTaskCh chan interf.Tasks
 	ResultCh  chan string // Служит для возврата результатов, если используется RPC backend
 
 	user string
@@ -87,7 +87,7 @@ func (b *RabbitMQBroker) connect(conf conf.CeleryConf) error {
 			for d := range msgs {
 				fmt.Println(string(d.Body))
 				// b.RawTaskCh <- d
-				b.RawTaskCh <- b.newCeleryTask(d)
+				b.RawTaskCh <- NewTask(d)
 			}
 		}(queue, ch)
 	}
@@ -101,10 +101,13 @@ func NewAMQPBroker(conf conf.CeleryConf) *RabbitMQBroker {
 		Port:      conf.Broker.ConnectionData.Port,
 		user:      conf.Broker.ConnectionData.User,
 		pass:      conf.Broker.ConnectionData.Pass,
-		RawTaskCh: make(chan dto.CeleryRawTask),
+		RawTaskCh: make(chan interf.Tasks),
 	}
 
-	broker.connect(conf)
+	err := broker.connect(conf)
+	if err != nil {
+		panic(err)
+	}
 
 	return broker
 }

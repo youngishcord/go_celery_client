@@ -1,7 +1,7 @@
 package base_tasks
 
 import (
-	protocol "celery_client/celery_app/core/message/amqp/protocol"
+	protocol "celery_client/celery_app/core/implementations/rabbitmq/protocol"
 	"fmt"
 )
 

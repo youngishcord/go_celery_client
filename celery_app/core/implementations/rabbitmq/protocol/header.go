@@ -33,9 +33,9 @@ type TimeLimit struct {
 	Hard time.Duration `json:"hard"`
 }
 
-func MakeHeaderFromTable(data amqp.Table) *Header {
+func ParseHeader(data amqp.Table) Header {
 
-	header := &Header{}
+	header := Header{}
 
 	if lang, ok := data["lang"].(string); ok {
 		header.Lang = lang

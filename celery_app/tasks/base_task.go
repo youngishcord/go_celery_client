@@ -1,6 +1,8 @@
 package base_tasks
 
-import amqp_protocol "celery_client/celery_app/core/message/amqp/protocol"
+import (
+	"celery_client/celery_app/core/implementations/rabbitmq/protocol"
+)
 
 type BaseTasks interface {
 	Run() (any, error)

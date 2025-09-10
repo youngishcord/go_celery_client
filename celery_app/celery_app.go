@@ -2,11 +2,8 @@ package celery_app
 
 import (
 	conf "celery_client/celery_app/celery_conf"
-	interf "celery_client/celery_app/core/interfaces"
-	"celery_client/celery_app/dto"
-
 	rabbit "celery_client/celery_app/core/implementations/rabbitmq"
-	// . "celery_client/celery_app/core/message/amqp/protocol"
+	interf "celery_client/celery_app/core/interfaces"
 	. "celery_client/celery_app/core/message/result"
 	. "celery_client/celery_app/tasks"
 	"fmt"
@@ -82,7 +79,7 @@ func (a *CeleryApp) Get(task BaseTasks) CeleryResult {
 	panic("IMPLEMENT ME")
 }
 
-func (a *CeleryApp) MakeTask(task dto.CeleryRawTask) {
+func (a *CeleryApp) MakeTask(task interf.Tasks) {
 	//task :=
 	fmt.Println(task)
 

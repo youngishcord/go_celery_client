@@ -62,7 +62,7 @@ func (a *CeleryApp) RunWorker() error {
 			}
 			fmt.Println("THIS IS RESULT")
 			fmt.Println(result)
-			task.Ack()
+			task.Complete()
 		}
 	}()
 	//}
@@ -149,7 +149,7 @@ func NewCeleryApp(conf conf.CeleryConf) *CeleryApp {
 	broker, backend := NewBrokerAndBackend(conf)
 
 	app := &CeleryApp{
-		TasksRegistry: map[string]func(message []byte) (BaseTasks, error){},
+		TasksRegistry: map[string]func(task interf.Tasks) (BaseTasks, error){},
 		TaskPoolCh:    make(chan BaseTasks, 5), // по количеству запускаемых воркеров?
 		ResultCh:      make(chan any),
 		Broker:        broker,

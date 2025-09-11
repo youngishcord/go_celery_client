@@ -7,7 +7,7 @@ import (
 type BaseTasks interface {
 	Run() (any, error)
 	Message() (any, error)
-	Complete()
+	Complete() // Метод завершения задачи
 }
 
 type TaskConstructor func(message map[string]interface{}) (BaseTasks, error)

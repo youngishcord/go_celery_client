@@ -1,14 +1,16 @@
 package base_tasks
 
-import (
-	protocol "celery_client/celery_app/core/implementations/rabbitmq/protocol"
-	"fmt"
-)
+import interf "celery_client/celery_app/core/interfaces"
 
 type AddTask struct {
-	X float64 `json:"x"`
-	Y float64 `json:"y"`
+	X       float64 `json:"x"`
+	Y       float64 `json:"y"`
+	rawTask interf.Tasks
 	BaseTask
+}
+
+func (t *AddTask) Complete() {
+	t.rawTask.Ack()
 }
 
 func (t *AddTask) Message() (any, error) {
@@ -24,15 +26,17 @@ func (t *AddTask) Run() (any, error) {
 }
 
 // Только переменные
-func NewAddTask(message []byte) (BaseTasks, error) {
-	parseTask, err := protocol.ParseTask(message)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(parseTask)
+func NewAddTask(rawTask interf.Tasks) (BaseTasks, error) {
+	//parseTask, err := protocol.ParseTask(message)
+	//if err != nil {
+	//	return nil, err
+	//}
+	//fmt.Println(parseTask)
+	args := rawTask.Args()
 	task := AddTask{
-		X:        parseTask.Args[0].(float64),
-		Y:        parseTask.Args[1].(float64),
+		X:        args[0].(float64),
+		Y:        args[1].(float64),
+		rawTask:  rawTask,
 		BaseTask: BaseTask{name: "name"},
 	}
 	//err = json.Unmarshal(message, &task)

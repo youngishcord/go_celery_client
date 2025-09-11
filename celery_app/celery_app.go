@@ -7,10 +7,11 @@ import (
 	. "celery_client/celery_app/core/message/result"
 	. "celery_client/celery_app/tasks"
 	"fmt"
+	"log"
 )
 
 type CeleryApp struct {
-	TasksRegistry map[string]func(message []byte) (BaseTasks, error)
+	TasksRegistry map[string]func(task interf.Tasks) (BaseTasks, error)
 	TaskPoolCh    chan BaseTasks
 	ResultCh      chan any
 
@@ -21,7 +22,7 @@ type CeleryApp struct {
 	appConf conf.CeleryConf
 }
 
-func (a *CeleryApp) RegisterTask(name string, constructor func(message []byte) (BaseTasks, error)) error {
+func (a *CeleryApp) RegisterTask(name string, constructor func(task interf.Tasks) (BaseTasks, error)) error {
 	if _, ok := a.TasksRegistry[name]; ok {
 		return fmt.Errorf("ЗАДАЧА С ТАКИМ ИМЕНЕМ УЖЕ ЗАРЕГИСТРИРОВАНА")
 	}
@@ -61,6 +62,7 @@ func (a *CeleryApp) RunWorker() error {
 			}
 			fmt.Println("THIS IS RESULT")
 			fmt.Println(result)
+			task.Ack()
 		}
 	}()
 	//}
@@ -83,6 +85,16 @@ func (a *CeleryApp) MakeTask(task interf.Tasks) {
 	//task :=
 	fmt.Println(task)
 
+	f, ok := a.TasksRegistry[task.Name()]
+	if !ok {
+		log.Println("TASK NOT FOUND")
+		return
+	}
+
+	newTask, _ := f(task)
+
+	a.TaskPoolCh <- newTask
+
 	// header := MakeHeaderFromTable(task.Headers)
 
 	//if err != nil {
@@ -99,16 +111,6 @@ func (a *CeleryApp) MakeTask(task interf.Tasks) {
 
 	//a.TaskPoolCh <-
 	//task.Ack()
-
-	// f, ok := a.TasksRegistry[header.Task]
-	// if !ok {
-	// 	log.Println("TASK NOT FOUND")
-	// 	return
-	// }
-
-	// newTask, _ := f(task.Body)
-
-	// a.TaskPoolCh <- newTask
 
 }
 

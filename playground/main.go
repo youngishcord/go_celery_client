@@ -45,6 +45,11 @@ type AddTask struct {
 	BaseTask
 }
 
+func (t *AddTask) Complete() {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (t *AddTask) Message() (any, error) {
 	// Похуй
 	return 1, nil

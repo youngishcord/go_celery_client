@@ -9,10 +9,19 @@ import (
 
 // TODO: тут надо понять, какие именно параметры нужно сохранять
 type Task struct {
-	tmp amqp.Delivery
+	tmp amqp.Delivery // Мне не нравится, что тут лежит полноценная структура.
+	// Надо взять из нее все что надо и убрать отсюда
 
 	Header protocol.Header
 	Body   protocol.Task
+}
+
+func (t *Task) Kwargs() map[string]any {
+	return t.Body.Kwargs
+}
+
+func (t *Task) Args() []any {
+	return t.Body.Args
 }
 
 func (t *Task) Reject() {
@@ -29,6 +38,7 @@ func (t *Task) Nack() {
 	}
 }
 
+// Тут нужно возвращать результат перед подтверждением и подумать, что делать при ошибке
 func (t *Task) Ack() {
 	err := t.tmp.Ack(false)
 	if err != nil {

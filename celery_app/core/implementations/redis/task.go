@@ -9,6 +9,16 @@ import (
 type Task struct {
 }
 
+func (t *Task) Kwargs() map[string]any {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *Task) Args() []any {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (t *Task) Reject() {
 	panic("implement me")
 }

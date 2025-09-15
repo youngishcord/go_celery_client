@@ -51,7 +51,7 @@ func main() {
 		Queues: []string{"qwer", "asdf"},
 	})
 
-	err := app.RegisterTask("add", base_tasks.NewAddTask)
+	err := app.RegisterTask("add", base_tasks.NewAddTask) // тут передается конструктор, который дергается каждый раз при получении задачи.
 	if err != nil {
 		return
 	}

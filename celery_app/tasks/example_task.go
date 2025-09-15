@@ -1,28 +1,31 @@
 package base_tasks
 
-import interf "celery_client/celery_app/core/interfaces"
+import (
+	interf "celery_client/celery_app/core/interfaces"
+	results "celery_client/celery_app/core/message/result"
+)
 
 type AddTask struct {
-	X       float64 `json:"x"`
-	Y       float64 `json:"y"`
-	rawTask interf.Tasks
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
 	BaseTask
 }
 
-func (t *AddTask) Complete() {
-	t.rawTask.Ack()
-}
+// func (t *AddTask) Complete() {
+// 	t.rawTask.Ack()
+// }
 
 func (t *AddTask) Message() (any, error) {
 	// Похуй
 	return 1, nil
 }
 
-func (t *AddTask) Run() (any, error) {
+func (t *AddTask) Run() (results.Serializable, error) { // тут надо сделать сериализемый возвращаемый тип
 	if t == nil {
 		panic("хуй")
 	}
-	return t.X + t.Y, nil
+
+	return 10, nil
 }
 
 // Только переменные
@@ -36,9 +39,10 @@ func NewAddTask(rawTask interf.Tasks) (BaseTasks, error) {
 	task := AddTask{
 		X:        args[0].(float64),
 		Y:        args[1].(float64),
-		rawTask:  rawTask,
-		BaseTask: BaseTask{name: "name"},
+		BaseTask: NewBaseTask(rawTask),
+		// BaseTask: BaseTask{name: "name"},
 	}
+
 	//err = json.Unmarshal(message, &task)
 	//if err != nil {
 	//	return nil, err

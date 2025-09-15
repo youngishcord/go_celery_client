@@ -114,6 +114,7 @@ func (a *CeleryApp) MakeTask(task interf.Tasks) {
 
 }
 
+// FIXME: Переделать в приватный и вызывать в конструкторе
 func (a *CeleryApp) StartMessageDriver() {
 	rawTaskChannel := a.Broker.ConsumeTask()
 	go func() {

@@ -13,7 +13,7 @@ import (
 type CeleryApp struct {
 	TasksRegistry map[string]func(task interf.Tasks) (BaseTasks, error)
 	TaskPoolCh    chan BaseTasks
-	ResultCh      chan any
+	ResultCh      chan CeleryResult
 
 	Broker  interf.Broker  // Наверное структура или интерфейс, которая описывает подключение к брокеру
 	Backend interf.Backend // Наверное структура или интерфейс, которая описывает подключение к бекенду
@@ -62,7 +62,14 @@ func (a *CeleryApp) RunWorker() error {
 			}
 			fmt.Println("THIS IS RESULT")
 			fmt.Println(result)
-			task.Complete()
+
+			err = a.Backend.PublishResult(NewCeleryResult(SUCCESS, result, "", task.UUID()), task)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			//a.ResultCh <- NewCeleryResult(SUCCESS, result, "", task.UUID(), task)
+			//task.Complete(result)
 		}
 	}()
 	//}
@@ -152,7 +159,7 @@ func NewCeleryApp(conf conf.CeleryConf) *CeleryApp {
 	app := &CeleryApp{
 		TasksRegistry: map[string]func(task interf.Tasks) (BaseTasks, error){},
 		TaskPoolCh:    make(chan BaseTasks, 5), // по количеству запускаемых воркеров?
-		ResultCh:      make(chan any),
+		ResultCh:      make(chan CeleryResult, 1),
 		Broker:        broker,
 		Backend:       backend,
 		appConf:       conf,

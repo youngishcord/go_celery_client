@@ -4,6 +4,7 @@ import (
 	protocol "celery_client/celery_app/core/implementations/rabbitmq/protocol"
 	interf "celery_client/celery_app/core/interfaces"
 
+	"github.com/google/uuid"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
@@ -14,6 +15,15 @@ type Task struct {
 
 	Header protocol.Header
 	Body   protocol.Task
+}
+
+// FIXME: Тут надо убрать темповую переменную
+func (t *Task) ReplyTo() string {
+	return t.tmp.ReplyTo
+}
+
+func (t *Task) UUID() uuid.UUID {
+	return t.Header.Id
 }
 
 func (t *Task) Kwargs() map[string]any {

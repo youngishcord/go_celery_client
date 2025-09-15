@@ -2,13 +2,19 @@ package base_tasks
 
 import (
 	interf "celery_client/celery_app/core/interfaces"
-	results "celery_client/celery_app/core/message/result"
+
+	_ "github.com/google/uuid"
 )
 
 type AddTask struct {
 	X float64 `json:"x"`
 	Y float64 `json:"y"`
 	BaseTask
+}
+
+func (t *AddTask) ReplyTo() string {
+	//TODO implement me
+	panic("implement me")
 }
 
 // func (t *AddTask) Complete() {
@@ -20,12 +26,11 @@ func (t *AddTask) Message() (any, error) {
 	return 1, nil
 }
 
-func (t *AddTask) Run() (results.Serializable, error) { // тут надо сделать сериализемый возвращаемый тип
+func (t *AddTask) Run() (any, error) { // тут надо сделать сериализемый возвращаемый тип
 	if t == nil {
 		panic("хуй")
 	}
-
-	return 10, nil
+	return t.X + t.Y, nil
 }
 
 // Только переменные

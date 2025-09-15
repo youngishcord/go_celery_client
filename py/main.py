@@ -34,6 +34,14 @@ def test(message):
 def counter(c):
     return c+1
 
+
+@app.task(name="args_kwargs", queue="qwer")
+def test2(*args, **kwargs):
+    print(args)
+    print(kwargs)
+    return args, kwargs
+
+
 def pub_message():
     
     # chain
@@ -71,7 +79,14 @@ def pub_message():
     ####################################################
     ####################################################
 
-    res = add.apply_async((1, 2,), ignore_result=True)
+    # res = add.apply_async((1, 2,), ignore_result=True)
+
+    # res = test2.apply_async((1, 2,), kwargs={"test":123, "asdf":"asdf"})
+
+    ch = celery.chain(test2.s(), test2.s())
+    res = ch.apply_async((1, 2,), kwargs={"test":123, "asdf":"asdf"})
+
+
     # while 1:
     #     time.sleep(5)
     # print(res.get())

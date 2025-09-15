@@ -1,12 +1,17 @@
 package rabbit
 
 import (
-	interf "celery_client/celery_app/core/interfaces"
 	r "celery_client/celery_app/core/message/result"
+	tasks "celery_client/celery_app/tasks"
+	"context"
+	"fmt"
+	"time"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 // Отношение к интерфейсу backend при работе с RPC
-func (b *RabbitMQ) PublishResult(result r.CeleryResult, task interf.Tasks) error {
+func (b *RabbitMQ) PublishResult(result r.CeleryResult, task tasks.BaseTasks) error {
 	// TODO: тут стоит задуматься над тем что будет, если во второй операции выпадет ошибка, а
 	//  первая уже будет выполнена
 	// TODO: Подтверждение результата должно быть другим. Я возвращаю тут результат
@@ -37,7 +42,24 @@ func (b *RabbitMQ) PublishResult(result r.CeleryResult, task interf.Tasks) error
 					log.Printf("Задача '%s' подтверждена", task)
 				}
 	*/
-	task.Ack()
+
+	// TODO: Тут также нужна специальная обработка результата при работе с цепочкой
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	err := b.Channel.PublishWithContext(
+		ctx,
+		"",
+		task.ReplyTo(),
+		false,
+		false,
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        []byte("test result"),
+		},
+	)
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	return nil
 }
 

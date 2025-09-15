@@ -3,10 +3,21 @@ package redis
 import (
 	interf "celery_client/celery_app/core/interfaces"
 
+	"github.com/google/uuid"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type Task struct {
+}
+
+func (t *Task) ReplyTo() string {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (t *Task) UUID() uuid.UUID {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (t *Task) Kwargs() map[string]any {

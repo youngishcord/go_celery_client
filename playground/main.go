@@ -12,6 +12,7 @@ type BaseMessages interface {
 type BaseTasks interface {
 	Run() (any, error)
 	Message() (any, error)
+	tmp()
 }
 
 type TaskWrapper struct {
@@ -62,6 +63,8 @@ func (t *AddTask) Run() (any, error) {
 	fmt.Println("this is add task")
 	return t.X + t.Y, nil
 }
+
+func (t *AddTask) tmp() {}
 
 func NewAddTask(x, y float64) AddTask {
 	return AddTask{

@@ -1,29 +1,30 @@
 package result
 
 import (
-	"encoding/json"
-
 	"github.com/google/uuid"
 )
 
-type Serializable interface {
-	json.Marshaler
-	json.Unmarshaler
-}
+//type Serializable interface {
+//	json.Marshaler
+//	json.Unmarshaler
+//}
 
 // TODO: Возможно необходимо перенести это в dto
 type CeleryResult struct {
 	Status Status
-	Result Serializable
+	Result any
 	Trace  string
 	TaskID uuid.UUID
+
+	//BaseTask tasks.BaseTasks
 }
 
-func NewCeleryResult(status Status, result Serializable, trace string, taskID uuid.UUID) CeleryResult {
+func NewCeleryResult(status Status, result any, trace string, taskID uuid.UUID) CeleryResult {
 	return CeleryResult{
 		Status: status,
 		Result: result,
 		Trace:  trace,
 		TaskID: taskID,
+		//BaseTask: task,
 	}
 }

@@ -1,14 +1,13 @@
 package interfaces
 
 import (
-	celery "celery_client/celery_app/core/message/result"
-	//tasks "celery_client/celery_app/tasks"
+	celery "celery_client/celery_app/message/result"
 )
 
 type Backend interface {
 	// FIXME: тут возникает циклический импорт при попытке передать интерфейс задачи,
 	//  поскольку интерфейс задачи включает базовый интерфейс задачи, который лежит в пакете с интерфейсами.
-	PublishResult(result celery.CeleryResult) error
+	PublishResult(result celery.CeleryResult, baseTasks BaseTasks) error
 	ConsumeResult(taskID string) (<-chan celery.CeleryResult, error)
 }
 

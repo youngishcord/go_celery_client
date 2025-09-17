@@ -2,12 +2,12 @@ package rabbit
 
 import (
 	interf "celery_client/celery_app/core/interfaces"
-	celery "celery_client/celery_app/core/message/result"
+	q "celery_client/celery_app/implementations/rabbitmq/queue"
+	celery "celery_client/celery_app/message/result"
 	"fmt"
 	"log"
 
 	conf "celery_client/celery_app/celery_conf"
-	q "celery_client/celery_app/core/implementations/rabbitmq/queue"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )

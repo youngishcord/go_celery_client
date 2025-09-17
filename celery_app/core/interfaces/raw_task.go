@@ -16,3 +16,11 @@ type Tasks interface {
 	Nack()
 	Reject()
 }
+
+type BaseTasks interface {
+	Run() (any, error)
+	Message() (any, error)
+	Complete(any) // Метод завершения задачи
+	UUID() uuid.UUID
+	ReplyTo() string
+}

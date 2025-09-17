@@ -15,8 +15,6 @@ type CeleryResult struct {
 	Result any
 	Trace  string
 	TaskID uuid.UUID
-
-	//BaseTask tasks.BaseTasks
 }
 
 func NewCeleryResult(status Status, result any, trace string, taskID uuid.UUID) CeleryResult {
@@ -25,6 +23,5 @@ func NewCeleryResult(status Status, result any, trace string, taskID uuid.UUID) 
 		Result: result,
 		Trace:  trace,
 		TaskID: taskID,
-		//BaseTask: task,
 	}
 }

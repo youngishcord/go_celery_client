@@ -1,6 +1,8 @@
 package redis
 
-import celery "celery_client/celery_app/core/message/result"
+import (
+	celery "celery_client/celery_app/message/result"
+)
 import interf "celery_client/celery_app/core/interfaces"
 
 func (b *Redis) PublishResult(result celery.CeleryResult, task interf.Tasks) error {

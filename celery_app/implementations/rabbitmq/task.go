@@ -1,8 +1,7 @@
 package rabbit
 
 import (
-	protocol "celery_client/celery_app/core/implementations/rabbitmq/protocol"
-	interf "celery_client/celery_app/core/interfaces"
+	"celery_client/celery_app/implementations/rabbitmq/protocol"
 
 	"github.com/google/uuid"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -13,8 +12,8 @@ type Task struct {
 	tmp amqp.Delivery // Мне не нравится, что тут лежит полноценная структура.
 	// Надо взять из нее все что надо и убрать отсюда
 
-	Header protocol.Header
-	Body   protocol.Task
+	Header amqp_protocol.Header
+	Body   amqp_protocol.Task
 }
 
 // FIXME: Тут надо убрать темповую переменную
@@ -60,14 +59,14 @@ func (t *Task) Name() string {
 	return t.Header.Task
 }
 
-func NewTask(rawTask amqp.Delivery) interf.Tasks {
-	body, err := protocol.ParseTask(rawTask.Body)
+func NewTask(rawTask amqp.Delivery) *Task {
+	body, err := amqp_protocol.ParseTask(rawTask.Body)
 	if err != nil {
 		panic(err)
 	}
 	return &Task{
 		tmp:    rawTask,
-		Header: protocol.ParseHeader(rawTask.Headers),
+		Header: amqp_protocol.ParseHeader(rawTask.Headers),
 		Body:   body,
 	}
 }

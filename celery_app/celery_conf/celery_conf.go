@@ -1,6 +1,8 @@
 package celery_conf
 
-import dto "celery_client/celery_app/dto"
+import (
+	"celery_client/celery_app/core/dto"
+)
 
 // Надо посмотреть какие настройки я могу перенести
 type CeleryConf struct {

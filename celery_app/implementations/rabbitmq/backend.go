@@ -1,8 +1,8 @@
 package rabbit
 
 import (
-	r "celery_client/celery_app/core/message/result"
-	tasks "celery_client/celery_app/tasks"
+	interf "celery_client/celery_app/core/interfaces"
+	r "celery_client/celery_app/message/result"
 	"context"
 	"fmt"
 	"time"
@@ -11,7 +11,7 @@ import (
 )
 
 // Отношение к интерфейсу backend при работе с RPC
-func (b *RabbitMQ) PublishResult(result r.CeleryResult, task tasks.BaseTasks) error {
+func (b *RabbitMQ) PublishResult(result r.CeleryResult, task interf.BaseTasks) error {
 	// TODO: тут стоит задуматься над тем что будет, если во второй операции выпадет ошибка, а
 	//  первая уже будет выполнена
 	// TODO: Подтверждение результата должно быть другим. Я возвращаю тут результат

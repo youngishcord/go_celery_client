@@ -12,11 +12,6 @@ type AddTask struct {
 	BaseTask
 }
 
-func (t *AddTask) ReplyTo() string {
-	//TODO implement me
-	panic("implement me")
-}
-
 // func (t *AddTask) Complete() {
 // 	t.rawTask.Ack()
 // }
@@ -34,7 +29,7 @@ func (t *AddTask) Run() (any, error) { // тут надо сделать сер�
 }
 
 // Только переменные
-func NewAddTask(rawTask interf.Tasks) (BaseTasks, error) {
+func NewAddTask(rawTask interf.Tasks) (interf.BaseTasks, error) {
 	//parseTask, err := protocol.ParseTask(message)
 	//if err != nil {
 	//	return nil, err

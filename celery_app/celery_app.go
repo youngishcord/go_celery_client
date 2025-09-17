@@ -2,17 +2,16 @@ package celery_app
 
 import (
 	conf "celery_client/celery_app/celery_conf"
-	rabbit "celery_client/celery_app/core/implementations/rabbitmq"
 	interf "celery_client/celery_app/core/interfaces"
-	. "celery_client/celery_app/core/message/result"
-	. "celery_client/celery_app/tasks"
+	"celery_client/celery_app/implementations/rabbitmq"
+	. "celery_client/celery_app/message/result"
 	"fmt"
 	"log"
 )
 
 type CeleryApp struct {
-	TasksRegistry map[string]func(task interf.Tasks) (BaseTasks, error)
-	TaskPoolCh    chan BaseTasks
+	TasksRegistry map[string]func(task interf.Tasks) (interf.BaseTasks, error)
+	TaskPoolCh    chan interf.BaseTasks
 	ResultCh      chan CeleryResult
 
 	Broker  interf.Broker  // Наверное структура или интерфейс, которая описывает подключение к брокеру
@@ -22,7 +21,7 @@ type CeleryApp struct {
 	appConf conf.CeleryConf
 }
 
-func (a *CeleryApp) RegisterTask(name string, constructor func(task interf.Tasks) (BaseTasks, error)) error {
+func (a *CeleryApp) RegisterTask(name string, constructor func(task interf.Tasks) (interf.BaseTasks, error)) error {
 	if _, ok := a.TasksRegistry[name]; ok {
 		return fmt.Errorf("ЗАДАЧА С ТАКИМ ИМЕНЕМ УЖЕ ЗАРЕГИСТРИРОВАНА")
 	}
@@ -32,7 +31,7 @@ func (a *CeleryApp) RegisterTask(name string, constructor func(task interf.Tasks
 
 // GetTask Получение задачи из реестра.
 // Может быть приватный?
-func (a *CeleryApp) GetTask(name string) (BaseTasks, error) {
+func (a *CeleryApp) GetTask(name string) (interf.BaseTasks, error) {
 	return nil, nil
 }
 
@@ -63,7 +62,7 @@ func (a *CeleryApp) RunWorker() error {
 			fmt.Println("THIS IS RESULT")
 			fmt.Println(result)
 
-			err = a.Backend.PublishResult(NewCeleryResult(SUCCESS, result, "", task.UUID()))
+			err = a.Backend.PublishResult(NewCeleryResult(SUCCESS, result, "", task.UUID()), task)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -79,12 +78,12 @@ func (a *CeleryApp) RunWorker() error {
 // Delay Отправка задачи в очередь
 // Метод должен возвращать сущность задачи, которую можно поставить на
 // ожидание и получить результат.
-func (a *CeleryApp) Delay(task_name string, args []any, kwargs map[any]any) BaseTasks {
+func (a *CeleryApp) Delay(task_name string, args []any, kwargs map[any]any) interf.BaseTasks {
 	panic("IMPLEMENT ME")
 }
 
 // Get Получение результата задачи по ее сущности из backend
-func (a *CeleryApp) Get(task BaseTasks) CeleryResult {
+func (a *CeleryApp) Get(task interf.BaseTasks) CeleryResult {
 	panic("IMPLEMENT ME")
 }
 
@@ -157,8 +156,8 @@ func NewCeleryApp(conf conf.CeleryConf) *CeleryApp {
 	broker, backend := NewBrokerAndBackend(conf)
 
 	app := &CeleryApp{
-		TasksRegistry: map[string]func(task interf.Tasks) (BaseTasks, error){},
-		TaskPoolCh:    make(chan BaseTasks, 5), // по количеству запускаемых воркеров?
+		TasksRegistry: map[string]func(task interf.Tasks) (interf.BaseTasks, error){},
+		TaskPoolCh:    make(chan interf.BaseTasks, 5), // по количеству запускаемых воркеров?
 		ResultCh:      make(chan CeleryResult, 1),
 		Broker:        broker,
 		Backend:       backend,

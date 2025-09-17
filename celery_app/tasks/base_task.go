@@ -1,22 +1,12 @@
 package base_tasks
 
 import (
-	amqp_protocol "celery_client/celery_app/core/implementations/rabbitmq/protocol"
 	interf "celery_client/celery_app/core/interfaces"
+	"celery_client/celery_app/implementations/rabbitmq/protocol"
 	"fmt"
 
 	"github.com/google/uuid"
 )
-
-type BaseTasks interface {
-	Run() (any, error)
-	Message() (any, error)
-	Complete(any) // Метод завершения задачи
-	UUID() uuid.UUID
-	ReplyTo() string
-}
-
-type TaskConstructor func(message map[string]interface{}) (BaseTasks, error)
 
 type BaseTask struct {
 	name   string              `json:"name,omitempty"`

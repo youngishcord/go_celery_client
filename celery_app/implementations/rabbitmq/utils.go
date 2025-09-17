@@ -1,7 +1,7 @@
 package rabbit
 
 import (
-	q "celery_client/celery_app/core/implementations/rabbitmq/queue"
+	q "celery_client/celery_app/implementations/rabbitmq/queue"
 	"fmt"
 )
 

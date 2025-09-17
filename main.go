@@ -3,7 +3,7 @@ package main
 import (
 	celery "celery_client/celery_app"
 	"celery_client/celery_app/celery_conf"
-	"celery_client/celery_app/dto"
+	"celery_client/celery_app/core/dto"
 	base_tasks "celery_client/celery_app/tasks"
 	"fmt"
 	"log"

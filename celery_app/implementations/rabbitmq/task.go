@@ -16,6 +16,10 @@ type Task struct {
 	Body   amqp_protocol.Task
 }
 
+func (t *Task) CorrelationID() string {
+	return t.tmp.CorrelationId
+}
+
 // FIXME: Тут надо убрать темповую переменную
 func (t *Task) ReplyTo() string {
 	return t.tmp.ReplyTo

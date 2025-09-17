@@ -20,11 +20,11 @@ func (b *RabbitMQ) url() string {
 }
 
 func (b *RabbitMQ) declareQueue(queue q.Queue) {
-	if b.Channel == nil {
+	if b.Consumer == nil {
 		panic("CHANNEL NOT OPEN")
 	}
 
-	_, err := b.Channel.QueueDeclare(
+	_, err := b.Consumer.QueueDeclare(
 		queue.Name,
 		queue.Durable,
 		queue.AutoDelete,

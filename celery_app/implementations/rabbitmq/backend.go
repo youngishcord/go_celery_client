@@ -4,6 +4,7 @@ import (
 	interf "celery_client/celery_app/core/interfaces"
 	r "celery_client/celery_app/message/result"
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -44,16 +45,25 @@ func (b *RabbitMQ) PublishResult(result r.CeleryResult, task interf.BaseTasks) e
 	*/
 
 	// TODO: Тут также нужна специальная обработка результата при работе с цепочкой
+
+	fmt.Println("publish result")
+	fmt.Println(result)
+
+	body, err := json.Marshal(result)
+	if err != nil {
+		return err
+	}
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	err := b.Channel.PublishWithContext(
+	err = b.Publisher.PublishWithContext(
 		ctx,
 		"",
 		task.ReplyTo(),
 		false,
 		false,
 		amqp.Publishing{
-			ContentType: "text/plain",
-			Body:        []byte("test result"),
+			ContentType:   "application/json",
+			CorrelationId: task.CorrelationID(),
+			Body:          body,
 		},
 	)
 	if err != nil {

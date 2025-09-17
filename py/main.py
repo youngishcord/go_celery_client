@@ -80,11 +80,13 @@ def pub_message():
     ####################################################
 
     # res = add.apply_async((1, 2,), ignore_result=True)
+    res = add.delay(1, 2)
+    print(res.get())
 
     # res = test2.apply_async((1, 2,), kwargs={"test":123, "asdf":"asdf"})
 
-    ch = celery.chain(test2.s(), test2.s())
-    res = ch.apply_async((1, 2,), kwargs={"test":123, "asdf":"asdf"})
+    # ch = celery.chain(test2.s(), test2.s())
+    # res = ch.apply_async((1, 2,), kwargs={"test":123, "asdf":"asdf"})
 
 
     # while 1:

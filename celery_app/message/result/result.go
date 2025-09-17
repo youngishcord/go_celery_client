@@ -11,10 +11,10 @@ import (
 
 // TODO: Возможно необходимо перенести это в dto
 type CeleryResult struct {
-	Status Status
-	Result any
-	Trace  string
-	TaskID uuid.UUID
+	Status Status    `json:"status"`
+	Result any       `json:"result"`
+	Trace  string    `json:"traceback"`
+	TaskID uuid.UUID `json:"task_id"`
 }
 
 func NewCeleryResult(status Status, result any, trace string, taskID uuid.UUID) CeleryResult {

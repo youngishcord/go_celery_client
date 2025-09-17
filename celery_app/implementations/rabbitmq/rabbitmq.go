@@ -14,8 +14,9 @@ import (
 
 // Структура, хранящее подключение к RabbitMQ
 type RabbitMQ struct {
-	Conn    *amqp.Connection
-	Channel *amqp.Channel
+	Conn      *amqp.Connection
+	Consumer  *amqp.Channel
+	Publisher *amqp.Channel
 
 	Host string
 	Port string
@@ -40,8 +41,8 @@ func (b *RabbitMQ) connect(conf conf.CeleryConf) error {
 	//		log.Fatal("BAD RABBITMQ CONNECTION CLOSE")
 	//	}
 	//}(conn)
-
 	b.Conn = conn
+
 	ch, err := conn.Channel()
 	//defer func(ch *amqp.Channel) {
 	//	err := ch.Close()
@@ -50,9 +51,15 @@ func (b *RabbitMQ) connect(conf conf.CeleryConf) error {
 	//	}
 	//}(ch)
 	if err != nil {
-		panic("NO RABBITMQ CHANNEL OPEN")
+		panic("NO RABBITMQ CONSUMER CHANNEL OPEN")
 	}
-	b.Channel = ch
+	b.Consumer = ch
+
+	pub, err := conn.Channel()
+	if err != nil {
+		panic("NO RABBITMQ PUBLISHER CHANNEL")
+	}
+	b.Publisher = pub
 
 	// TODO: Это надо как то вынести в отдельное место
 	// Это конфиг, который должен быть настраиваемый снаружи

@@ -12,10 +12,6 @@ type AddTask struct {
 	BaseTask
 }
 
-// func (t *AddTask) Complete() {
-// 	t.rawTask.Ack()
-// }
-
 func (t *AddTask) Message() (any, error) {
 	// Похуй
 	return 1, nil

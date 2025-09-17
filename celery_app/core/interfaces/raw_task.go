@@ -10,6 +10,7 @@ type Tasks interface {
 
 	UUID() uuid.UUID
 	ReplyTo() string
+	CorrelationID() string
 	//Payload() []byte
 
 	Ack()
@@ -23,4 +24,5 @@ type BaseTasks interface {
 	Complete(any) // Метод завершения задачи
 	UUID() uuid.UUID
 	ReplyTo() string
+	CorrelationID() string
 }

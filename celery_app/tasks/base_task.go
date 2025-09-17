@@ -32,6 +32,10 @@ func (t *BaseTask) ReplyTo() string {
 	return t.rawTask.ReplyTo()
 }
 
+func (t *BaseTask) CorrelationID() string {
+	return t.rawTask.CorrelationID()
+}
+
 func NewBaseTask(rawTask interf.Tasks) BaseTask {
 	return BaseTask{
 		name:    rawTask.Name(),

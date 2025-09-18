@@ -9,7 +9,8 @@ from celery.result import ResultSet
 app = celery.Celery(
 	"publisher",
 	broker="amqp://guest:guest@localhost:5545//",
-	backend="rpc://"
+	# backend="rpc://",
+	backend="redis://localhost:5546/0",
 )
 # app.conf.worker_prefetch_multiplier = 1  # Только одна задача на процесс
 # app.conf.worker_concurrency = 1          # Количество процессов
@@ -81,6 +82,7 @@ def pub_message():
 
     # res = add.apply_async((1, 2,), ignore_result=True)
     res = add.delay(1, 2)
+    print(res)
     print(res.get())
 
     # res = test2.apply_async((1, 2,), kwargs={"test":123, "asdf":"asdf"})

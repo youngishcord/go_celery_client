@@ -45,7 +45,7 @@ func main() {
 			},
 		},
 		Backend: dto.BackendDto{
-			BackendType:    "RPC",
+			BackendType:    "Redis", //"RPC",
 			ConnectionData: dto.Connection{},
 		},
 		Queues: []string{"qwer", "asdf"},

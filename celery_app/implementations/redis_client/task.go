@@ -1,4 +1,4 @@
-package redis
+package redis_client
 
 import (
 	interf "celery_client/celery_app/core/interfaces"

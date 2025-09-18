@@ -4,6 +4,7 @@ import (
 	conf "celery_client/celery_app/celery_conf"
 	interf "celery_client/celery_app/core/interfaces"
 	"celery_client/celery_app/implementations/rabbitmq"
+	"celery_client/celery_app/implementations/redis_client"
 	. "celery_client/celery_app/message/result"
 	"fmt"
 	"log"
@@ -146,6 +147,8 @@ func NewBrokerAndBackend(conf conf.CeleryConf) (interf.Broker, interf.Backend) {
 		if tmp, ok := broker.(interf.Backend); ok {
 			backend = tmp
 		}
+	case "Redis":
+		backend = redis_client.NewRedisClient() // TODO: тут нужны параметры
 	}
 
 	return broker, backend

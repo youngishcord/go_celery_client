@@ -63,7 +63,7 @@ func (a *CeleryApp) RunWorker() error {
 			fmt.Println("THIS IS RESULT")
 			fmt.Println(result)
 
-			err = a.Backend.PublishResult(NewCeleryResult(SUCCESS, result, "", task.UUID()), task)
+			err = a.Backend.PublishResult(result, task)
 			if err != nil {
 				fmt.Println(err)
 			}

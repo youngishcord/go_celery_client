@@ -1,20 +1,23 @@
 package redis_client
 
 import (
+	s "celery_client/celery_app/core/dto"
+	interf "celery_client/celery_app/core/interfaces"
+	protocol "celery_client/celery_app/implementations/redis_client/protocol"
 	celery "celery_client/celery_app/message/result"
 	"context"
 	"encoding/json"
 	"time"
 )
-import interf "celery_client/celery_app/core/interfaces"
 
-func (b *RedisClient) PublishResult(result celery.CeleryResult, baseTasks interf.BaseTasks) error {
+// TODO: ttl должен быть настраиваемый
+func (b *RedisClient) PublishResult(result any, task interf.BaseTasks) error {
 	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
-	body, err := json.Marshal(result)
+	body, err := json.Marshal(protocol.NewCeleryResult(s.SUCCESS, result, "", task.UUID()))
 	if err != nil {
 		return err
 	}
-	status := b.conn.Set(ctx, "celery-task-meta-"+baseTasks.CorrelationID(), body, b.ttl)
+	status := b.conn.Set(ctx, "celery-task-meta-"+task.CorrelationID(), body, b.ttl)
 	if status != nil {
 		println(status)
 	}

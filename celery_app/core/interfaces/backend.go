@@ -7,7 +7,7 @@ import (
 type Backend interface {
 	// FIXME: тут возникает циклический импорт при попытке передать интерфейс задачи,
 	//  поскольку интерфейс задачи включает базовый интерфейс задачи, который лежит в пакете с интерфейсами.
-	PublishResult(result celery.CeleryResult, baseTasks BaseTasks) error
+	PublishResult(result any, baseTasks BaseTasks) error
 	ConsumeResult(taskID string) (<-chan celery.CeleryResult, error)
 }
 

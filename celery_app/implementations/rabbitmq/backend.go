@@ -8,11 +8,14 @@ import (
 	"fmt"
 	"time"
 
+	s "celery_client/celery_app/core/dto"
+	protocol "celery_client/celery_app/implementations/rabbitmq/protocol"
+
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 // Отношение к интерфейсу backend при работе с RPC
-func (b *RabbitMQ) PublishResult(result r.CeleryResult, task interf.BaseTasks) error {
+func (b *RabbitMQ) PublishResult(result any, task interf.BaseTasks) error {
 	// TODO: тут стоит задуматься над тем что будет, если во второй операции выпадет ошибка, а
 	//  первая уже будет выполнена
 	// TODO: Подтверждение результата должно быть другим. Я возвращаю тут результат
@@ -49,7 +52,7 @@ func (b *RabbitMQ) PublishResult(result r.CeleryResult, task interf.BaseTasks) e
 	fmt.Println("publish result")
 	fmt.Println(result)
 
-	body, err := json.Marshal(result)
+	body, err := json.Marshal(protocol.NewCeleryResult(s.SUCCESS, result, "", task.UUID()))
 	if err != nil {
 		return err
 	}

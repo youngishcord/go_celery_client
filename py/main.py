@@ -9,8 +9,8 @@ from celery.result import ResultSet
 app = celery.Celery(
 	"publisher",
 	broker="amqp://guest:guest@localhost:5545//",
-	# backend="rpc://",
-	backend="redis://localhost:5546/0",
+	backend="rpc://",
+	# backend="redis://localhost:5546/0",
 )
 # app.conf.worker_prefetch_multiplier = 1  # Только одна задача на процесс
 # app.conf.worker_concurrency = 1          # Количество процессов
@@ -24,6 +24,7 @@ class CustomTask(Task):
 @app.task(name="add", queue="qwer")
 def add(x, y):
     # time.sleep(1)
+    raise ValueError("custom")
     return x + y
 
 @app.task(name="test", queue="asdf")
@@ -83,7 +84,7 @@ def pub_message():
     # res = add.apply_async((1, 2,), ignore_result=True)
     res = add.delay(1, 2)
     print(res)
-    print(res.get())
+    # print(res.get())
 
     # res = test2.apply_async((1, 2,), kwargs={"test":123, "asdf":"asdf"})
 

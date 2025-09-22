@@ -85,7 +85,55 @@ if header.Task != "test" {
 
 В Celery возврат args и kwargs в 
 
+
+## Обработка ошибок
+
+### Redis
+
+В редисе ошибки возвращаются в результате и в traceback вкладывается стек вызова в виде большой строки.
+Надо придумать фабрику ошибок.
+
+Пример формата ошибки.
+``` json
+{
+  "children": [],
+  "date_done": "2025-09-22T19:56:50.199924+00:00",
+  "result": {
+    "exc_type": "ValueError",
+    "exc_message": [
+      "custom"
+    ],
+    "exc_module": "builtins"
+  },
+  "status": "FAILURE",
+  "task_id": "8a44f616-30bd-4330-b0f1-bb5d13c3c4df",
+  "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\kulik\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\celery\\app\\trace.py\", line 453, in trace_task\n    R = retval = fun(*args, **kwargs)\n                 ~~~^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\kulik\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\celery\\app\\trace.py\", line 736, in __protected_call__\n    return self.run(*args, **kwargs)\n           ~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\kulik\\OneDrive\\Desktop\\programming\\golang\\go_celery_client\\py\\main.py\", line 27, in add\n    raise ValueError(\"custom\")\nValueError: custom\n"
+}
+```
+
+### Rabbit
+
+В Rabbit результат задачи с ошибкой идентичен, можно попробовать сделать единую фабрику для генерации результата.
+Странненько, что результаты разные, а ошибки идентичны.
+
+``` json
+{
+  "children": [],
+  "result": {
+    "exc_type": "ValueError",
+    "exc_message": [
+      "custom"
+    ],
+    "exc_module": "builtins"
+  },
+  "status": "FAILURE",
+  "task_id": "a4614b17-9294-4472-af3d-6725b949772c",
+  "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\kulik\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\celery\\app\\trace.py\", line 453, in trace_task\n    R = retval = fun(*args, **kwargs)\n                 ~~~^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\kulik\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\celery\\app\\trace.py\", line 736, in __protected_call__\n    return self.run(*args, **kwargs)\n           ~~~~~~~~^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\kulik\\OneDrive\\Desktop\\programming\\golang\\go_celery_client\\py\\main.py\", line 27, in add\n    raise ValueError(\"custom\")\nValueError: custom\n"
+}
+```
+
 # Ссылки
 
 - Протокол сообщений Celery https://docs.celeryq.dev/en/latest/internals/protocol.html 
+
 

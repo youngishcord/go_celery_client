@@ -81,3 +81,29 @@ func (b *RabbitMQ) ConsumeResult(taskID string) (<-chan r.CeleryResult, error) {
 	// TODO: implement me
 	panic("IMPLEMENT ME")
 }
+
+// TODO: Наверное можно вынести в один метод publish, но пока что пусть будет так
+func (b *RabbitMQ) PublishException(result any, task interf.Tasks, trace string) error {
+	body, err := json.Marshal(protocol.NewCeleryResult(s.FAILURE, result, trace, task.UUID()))
+	if err != nil {
+		return err
+	}
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	err = b.Publisher.PublishWithContext(
+		ctx,
+		"",
+		task.ReplyTo(),
+		false,
+		false,
+		amqp.Publishing{
+			ContentType:   "application/json",
+			CorrelationId: task.CorrelationID(),
+			Body:          body,
+		},
+	)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return nil
+}

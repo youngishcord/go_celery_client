@@ -2,6 +2,8 @@ package celery_app
 
 import (
 	conf "celery_client/celery_app/celery_conf"
+	e "celery_client/celery_app/core/errors"
+	"celery_client/celery_app/core/exceptions"
 	interf "celery_client/celery_app/core/interfaces"
 	"celery_client/celery_app/implementations/rabbitmq"
 	"celery_client/celery_app/implementations/redis_client"
@@ -94,6 +96,12 @@ func (a *CeleryApp) MakeTask(task interf.Tasks) {
 
 	f, ok := a.TasksRegistry[task.Name()]
 	if !ok {
+		_ = a.Backend.PublishException(
+			exceptions.GetException(e.NotRegistered,
+				[]string{task.Name()}),
+			task,
+			"test trace",
+		)
 		log.Println("TASK NOT FOUND")
 		return
 	}

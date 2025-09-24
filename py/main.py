@@ -82,8 +82,15 @@ def pub_message():
     ####################################################
 
     # res = add.apply_async((1, 2,), ignore_result=True)
-    res = add.delay(1, 2)
-    print(res)
+    # res = add.delay(1, 2)
+    res = ""
+    for i in range(10):
+        t = CustomTask("test_task3").s().set(queue="qwer")
+        res = t.delay()
+        print(res)
+    # time.sleep(15)
+    # print(res.get())
+
     # print(res.get())
 
     # res = test2.apply_async((1, 2,), kwargs={"test":123, "asdf":"asdf"})

@@ -27,3 +27,8 @@ func (b *RedisClient) PublishResult(result any, task interf.BaseTasks) error {
 func (b *RedisClient) ConsumeResult(taskID string) (<-chan celery.CeleryResult, error) {
 	panic("implement me")
 }
+
+func (b *RedisClient) PublishException(result any, baseTasks interf.Tasks, trace string) error {
+	//TODO implement me
+	panic("implement me")
+}

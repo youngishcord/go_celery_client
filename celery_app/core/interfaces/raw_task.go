@@ -25,4 +25,5 @@ type BaseTasks interface {
 	UUID() uuid.UUID
 	ReplyTo() string
 	CorrelationID() string
+	// TaskChain() // TODO: тут нужен метод получения цепочки
 }

@@ -83,11 +83,14 @@ def pub_message():
 
     # res = add.apply_async((1, 2,), ignore_result=True)
     # res = add.delay(1, 2)
-    res = ""
-    for i in range(10):
-        t = CustomTask("test_task3").s().set(queue="qwer")
-        res = t.delay()
-        print(res)
+    # res = ""
+    # for i in range(10):
+    t2 = CustomTask("test_task2").s().set(queue="asdf")
+    t3 = CustomTask("test_task3").s().set(queue="asdf")
+    t = CustomTask("test_task3").s().set(queue="qwer")
+    ch = t | t2 | t3
+    res = ch.delay()
+    print(res)
     # time.sleep(15)
     # print(res.get())
 

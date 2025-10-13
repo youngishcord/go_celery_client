@@ -52,46 +52,17 @@ func ParseTask(jsonData []byte) (Task, error) {
 	if err := json.Unmarshal(data[0], &task.Args); err != nil {
 		panic("NO ARGS")
 	}
-	// if args, ok := data[0].([]any); ok {
-	// 	task.Args = args
-	// }
 
 	// Парсим kwargs (второй элемент)
 	if err := json.Unmarshal(data[1], &task.Kwargs); err != nil {
 		panic("NO KWARGS")
 	}
-	// if kwargs, ok := data[1]; ok {
-	// 	task.Kwargs = kwargs
-	// }
 
-	// emb := Embed{}
 	// Парсим вспомогательные данные (третий элемент)
 	err = json.Unmarshal(data[2], &task.Emb)
 	if err != nil {
 		panic("TASK CHAIN ERROR")
 	}
-	// } else {
-	// 	task.Emb = emb
-	// }
-	// if auxData, ok := data[2].(map[string][]byte); ok {
-	// if callbacks, exists := auxData["callbacks"]; exists {
-	// 	task.Callbacks = callbacks
-	// }
-	// if errbacks, exists := auxData["errbacks"]; exists {
-	// 	task.Errbacks = errbacks
-	// }
-	// if chain, exists := auxData["chain"]; exists {
-	// 	ch := Chain{}
-	// 	err := json.Unmarshal(chain, ch)
-	// 	if err != nil {
-	// 		fmt.Errorf("CHAIN TASK ERROR")
-	// 	}
-
-	// }
-	// if chord, exists := auxData["chord"]; exists {
-	// 	task.Chord = chord
-	// }
-	// }
 
 	fmt.Println("FORMATED TASK ")
 	fmt.Println(task)

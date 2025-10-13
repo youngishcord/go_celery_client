@@ -14,6 +14,8 @@ type CeleryTask struct {
 	Callbacks     string         `json:"callbacks,omitempty"`
 	Errbacks      string         `json:"errbacks,omitempty"`
 
+	DeliveryTag uint64 `json:"deliveryTag,omitempty"` // RabbitMQ tag for Ack
+
 	//embed amqp_protocol.Embed `json:"embed,omitempty"` // Это надо убрать
 
 }

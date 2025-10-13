@@ -36,8 +36,7 @@ func (t *BaseTask) CorrelationID() string {
 	return t.rawTask.CorrelationID()
 }
 
-func (t *BaseTask) 
-
+//func (t *BaseTask)
 
 func NewBaseTask(rawTask interf.Tasks) BaseTask {
 	return BaseTask{
@@ -45,4 +44,3 @@ func NewBaseTask(rawTask interf.Tasks) BaseTask {
 		rawTask: rawTask,
 	}
 }
-

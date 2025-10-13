@@ -26,7 +26,7 @@ func (b *RabbitMQ) PublishResult(result any, task interf.BaseTasks) error {
 	fmt.Println("publish result")
 	fmt.Println(result)
 
-	if 
+	//if
 
 	body, err := json.Marshal(protocol.NewCeleryResult(s.SUCCESS, result, "", task.UUID()))
 	if err != nil {

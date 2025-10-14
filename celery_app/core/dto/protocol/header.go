@@ -1,31 +1,34 @@
-package amqp_protocol
+package protocol
 
 import (
 	"time"
 
 	"github.com/google/uuid"
-	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type Header struct {
-	Lang     string    `json:"lang"`
-	Task     string    `json:"task"`
-	Id       uuid.UUID `json:"id"`
-	RootId   uuid.UUID `json:"root_id,omitempty"`
-	ParentId uuid.UUID `json:"parent_id,omitempty"`
-	GroupId  uuid.UUID `json:"group,omitempty"`
+	Lang       string    `json:"lang"`
+	Task       string    `json:"task"`
+	Id         uuid.UUID `json:"id"`
+	RootId     uuid.UUID `json:"root_id,omitempty"`
+	ParentId   uuid.UUID `json:"parent_id,omitempty"`
+	Group      uuid.UUID `json:"group,omitempty"`
+	GroupIndex uuid.UUID `json:"group_index,omitempty"`
 
 	// optional
-	Meth                string     `json:"meth,omitempty"`
-	Shadow              string     `json:"shadow,omitempty"`
-	ETA                 *time.Time `json:"eta,omitempty"`
-	Expires             *time.Time `json:"expires,omitempty"`
-	Retries             int        `json:"retries,omitempty"`
-	TimeLimit           *TimeLimit `json:"timelimit,omitempty"`
-	ArgsRepr            string     `json:"argsrepr,omitempty"`
-	KwargsRepr          string     `json:"kwargsrepr,omitempty"`
-	Origin              string     `json:"origin,omitempty"`
-	ReplacedTaskNesting int        `json:"replaced_task_nesting,omitempty"`
+	Meth                string         `json:"meth,omitempty"`
+	Shadow              string         `json:"shadow,omitempty"`
+	ETA                 *time.Time     `json:"eta,omitempty"`
+	Expires             *time.Time     `json:"expires,omitempty"`
+	Retries             int            `json:"retries,omitempty"`
+	TimeLimit           *TimeLimit     `json:"timelimit,omitempty"`
+	ArgsRepr            string         `json:"argsrepr,omitempty"`
+	KwargsRepr          string         `json:"kwargsrepr,omitempty"`
+	Origin              string         `json:"origin,omitempty"`
+	ReplacedTaskNesting int            `json:"replaced_task_nesting,omitempty"`
+	IgnoreResult        bool           `json:"ignore_result,omitempty"`
+	StampedHeaders      any            `json:"stamped_headers,omitempty"` // TODO: Не знаю какой тут тип
+	Stamps              map[string]any `json:"stamps,omitempty"`          // TODO: Не знаю какой тут тип
 }
 
 type TimeLimit struct {
@@ -33,7 +36,7 @@ type TimeLimit struct {
 	Hard time.Duration `json:"hard"`
 }
 
-func ParseHeader(data amqp.Table) Header {
+func ParseHeader(data map[string]interface{}) (Header, error) {
 
 	header := Header{}
 
@@ -67,7 +70,7 @@ func ParseHeader(data amqp.Table) Header {
 
 	if grIdStr, ok := data["group"].(string); ok {
 		if id, err := uuid.Parse(grIdStr); err == nil {
-			header.GroupId = id
+			header.Group = id
 		}
 	}
 
@@ -130,5 +133,5 @@ func ParseHeader(data amqp.Table) Header {
 		header.ReplacedTaskNesting = nesting
 	}
 
-	return header
+	return header, nil
 }

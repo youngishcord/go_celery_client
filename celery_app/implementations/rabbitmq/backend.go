@@ -9,7 +9,7 @@ import (
 	"time"
 
 	s "celery_client/celery_app/core/dto"
-	protocol "celery_client/celery_app/implementations/rabbitmq/protocol"
+	// protocol "celery_client/celery_app/implementations/rabbitmq/protocol"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )

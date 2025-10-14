@@ -8,9 +8,10 @@ from celery.result import ResultSet
 
 app = celery.Celery(
 	"publisher",
-	broker="amqp://guest:guest@localhost:5545//",
-	backend="rpc://",
-	# backend="redis://localhost:5546/0",
+	# broker="amqp://guest:guest@localhost:5545//",
+	broker="redis://localhost:5546/0",
+	# backend="rpc://",
+	backend="redis://localhost:5546/1",
 )
 # app.conf.worker_prefetch_multiplier = 1  # Только одна задача на процесс
 # app.conf.worker_concurrency = 1          # Количество процессов

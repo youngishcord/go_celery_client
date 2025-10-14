@@ -1,13 +1,15 @@
 package rabbit
 
 import (
-	interf "celery_client/celery_app/core/interfaces"
+	"celery_client/celery_app/core/dto/protocol"
 	q "celery_client/celery_app/implementations/rabbitmq/queue"
 	celery "celery_client/celery_app/message/result"
 	"fmt"
 	"log"
 
 	conf "celery_client/celery_app/celery_conf"
+
+	tasks "celery_client/celery_app/task"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -21,8 +23,8 @@ type RabbitMQ struct {
 	Host string
 	Port string
 
-	RawTaskCh chan interf.Tasks
-	ResultCh  chan celery.CeleryResult // Служит для возврата результатов, если используется RPC backend
+	TaskCh   chan tasks.CeleryTask
+	ResultCh chan celery.CeleryResult // Служит для возврата результатов, если используется RPC backend
 
 	user string
 	pass string
@@ -63,6 +65,7 @@ func (b *RabbitMQ) connect(conf conf.CeleryConf) error {
 
 	// TODO: Это надо как то вынести в отдельное место
 	// Это конфиг, который должен быть настраиваемый снаружи
+	// prefetch count должен быть настроен по количеству воркеров в пуле
 	err = ch.Qos(
 		2,     // prefetch count
 		0,     // prefetch size (0 means unlimited)
@@ -95,7 +98,7 @@ func (b *RabbitMQ) connect(conf conf.CeleryConf) error {
 			for d := range msgs {
 				fmt.Println(string(d.Body))
 				// b.RawTaskCh <- d
-				b.RawTaskCh <- NewTask(d)
+				b.TaskCh <- NewTask(d)
 			}
 		}(queue, ch)
 	}
@@ -105,11 +108,11 @@ func (b *RabbitMQ) connect(conf conf.CeleryConf) error {
 
 func NewAMQPBroker(conf conf.CeleryConf) *RabbitMQ {
 	broker := &RabbitMQ{
-		Host:      conf.Broker.ConnectionData.Host,
-		Port:      conf.Broker.ConnectionData.Port,
-		user:      conf.Broker.ConnectionData.User,
-		pass:      conf.Broker.ConnectionData.Pass,
-		RawTaskCh: make(chan interf.Tasks),
+		Host:   conf.Broker.ConnectionData.Host,
+		Port:   conf.Broker.ConnectionData.Port,
+		user:   conf.Broker.ConnectionData.User,
+		pass:   conf.Broker.ConnectionData.Pass,
+		TaskCh: make(chan protocol.CeleryTask),
 	}
 
 	err := broker.connect(conf)

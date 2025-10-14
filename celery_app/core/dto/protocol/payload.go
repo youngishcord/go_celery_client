@@ -1,15 +1,9 @@
-package amqp_protocol
+package protocol
 
 import (
 	"encoding/json"
 	"fmt"
 )
-
-type Task struct {
-	Args   []any          `json:"args"`
-	Kwargs map[string]any `json:"kwargs"`
-	Emb    Embed          `json:"embed"`
-}
 
 type Options struct {
 	Queue   string `json:"queue"`
@@ -31,22 +25,28 @@ type Embed struct {
 	Callbacks any     `json:"callbacks,omitempty"`
 	Errbacks  any     `json:"errbacks,omitempty"`
 	Chain     []Chain `json:"chain,omitempty"`
-	Chord     any     `json:"chord,omitempty"`
+	Chord     any     `json:"chord,omitempty"` // TODO: доработать
 }
 
-func ParseTask(jsonData []byte) (Task, error) {
+type Body struct {
+	Args   []any          `json:"args"`
+	Kwargs map[string]any `json:"kwargs"`
+	Emb    Embed          `json:"embed"`
+}
+
+func ParsePayload(jsonData []byte) (Body, error) {
 	fmt.Println(jsonData)
 	var data []json.RawMessage
 	err := json.Unmarshal(jsonData, &data)
 	if err != nil {
-		return Task{}, err
+		return Body{}, err
 	}
 
 	if len(data) < 3 {
-		return Task{}, fmt.Errorf("invalid data format: expected 3 elements, got %d", len(data))
+		return Body{}, fmt.Errorf("invalid data format: expected 3 elements, got %d", len(data))
 	}
 
-	task := Task{}
+	task := Body{}
 
 	// Парсим args (первый элемент)
 	if err := json.Unmarshal(data[0], &task.Args); err != nil {

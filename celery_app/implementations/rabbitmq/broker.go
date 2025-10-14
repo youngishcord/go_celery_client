@@ -1,12 +1,9 @@
 package rabbit
 
-import (
-	"celery_client/celery_app/core/interfaces"
-	"celery_client/celery_app/task"
-)
+import "celery_client/celery_app/core/dto/protocol"
 
-func (b *RabbitMQ) ConsumeTask() <-chan interfaces.Tasks {
-	return b.RawTaskCh
+func (b *RabbitMQ) ConsumeTask() <-chan protocol.CeleryTask {
+	return b.TaskCh
 }
 
 // Ack basic acknowledge function for celery task

@@ -1,7 +1,6 @@
 package rabbit
 
 import (
-	"celery_client/celery_app/core/dto/protocol"
 	q "celery_client/celery_app/implementations/rabbitmq/queue"
 	celery "celery_client/celery_app/message/result"
 	"fmt"
@@ -9,7 +8,8 @@ import (
 
 	conf "celery_client/celery_app/celery_conf"
 
-	tasks "celery_client/celery_app/task"
+	// tasks "celery_client/celery_app/task"
+	protocol "celery_client/celery_app/core/dto/protocol"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -23,7 +23,7 @@ type RabbitMQ struct {
 	Host string
 	Port string
 
-	TaskCh   chan tasks.CeleryTask
+	TaskCh   chan protocol.CeleryTask
 	ResultCh chan celery.CeleryResult // Служит для возврата результатов, если используется RPC backend
 
 	user string

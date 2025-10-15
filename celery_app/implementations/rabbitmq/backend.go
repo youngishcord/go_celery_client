@@ -1,7 +1,6 @@
 package rabbit
 
 import (
-	interf "celery_client/celery_app/core/interfaces"
 	r "celery_client/celery_app/message/result"
 	"context"
 	"encoding/json"
@@ -9,13 +8,19 @@ import (
 	"time"
 
 	s "celery_client/celery_app/core/dto"
-	// protocol "celery_client/celery_app/implementations/rabbitmq/protocol"
+	protocol "celery_client/celery_app/core/dto/protocol"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 // Отношение к интерфейсу backend при работе с RPC
-func (b *RabbitMQ) PublishResult(result any, task interf.BaseTasks) error {
+func (b *RabbitMQ) ConsumeResult(taskID string) (<-chan r.CeleryResult, error) {
+	// TODO: implement me
+	panic("IMPLEMENT ME")
+}
+
+// Отношение к интерфейсу backend при работе с RPC
+func (b *RabbitMQ) PublishResult(result any, task protocol.CeleryTask) error {
 	// TODO: тут стоит задуматься над тем что будет, если во второй операции выпадет ошибка, а
 	//  первая уже будет выполнена
 	// TODO: Подтверждение результата должно быть другим. Я возвращаю тут результат
@@ -28,7 +33,7 @@ func (b *RabbitMQ) PublishResult(result any, task interf.BaseTasks) error {
 
 	//if
 
-	body, err := json.Marshal(protocol.NewCeleryResult(s.SUCCESS, result, "", task.UUID()))
+	body, err := json.Marshal(protocol.NewCeleryResult(s.SUCCESS, result, "", task.Headers.Id))
 	if err != nil {
 		return err
 	}
@@ -36,12 +41,12 @@ func (b *RabbitMQ) PublishResult(result any, task interf.BaseTasks) error {
 	err = b.Publisher.PublishWithContext(
 		ctx,
 		"",
-		task.ReplyTo(),
+		task.Properties.ReplyTo.String(),
 		false,
 		false,
 		amqp.Publishing{
 			ContentType:   "application/json",
-			CorrelationId: task.CorrelationID(),
+			CorrelationId: task.Properties.CorrelationID.String(),
 			Body:          body,
 		},
 	)
@@ -52,15 +57,9 @@ func (b *RabbitMQ) PublishResult(result any, task interf.BaseTasks) error {
 	return nil
 }
 
-// Отношение к интерфейсу backend при работе с RPC
-func (b *RabbitMQ) ConsumeResult(taskID string) (<-chan r.CeleryResult, error) {
-	// TODO: implement me
-	panic("IMPLEMENT ME")
-}
-
 // TODO: Наверное можно вынести в один метод publish, но пока что пусть будет так
-func (b *RabbitMQ) PublishException(result any, task interf.Tasks, trace string) error {
-	body, err := json.Marshal(protocol.NewCeleryResult(s.FAILURE, result, trace, task.UUID()))
+func (b *RabbitMQ) PublishException(result any, task protocol.CeleryTask, trace string) error {
+	body, err := json.Marshal(protocol.NewCeleryResult(s.FAILURE, result, trace, task.Headers.Id))
 	if err != nil {
 		return err
 	}
@@ -68,12 +67,12 @@ func (b *RabbitMQ) PublishException(result any, task interf.Tasks, trace string)
 	err = b.Publisher.PublishWithContext(
 		ctx,
 		"",
-		task.ReplyTo(),
+		task.Properties.ReplyTo.String(),
 		false,
 		false,
 		amqp.Publishing{
 			ContentType:   "application/json",
-			CorrelationId: task.CorrelationID(),
+			CorrelationId: task.Properties.CorrelationID.String(),
 			Body:          body,
 		},
 	)

@@ -1,7 +1,9 @@
 package exceptions
 
-import "errors"
-import e "celery_client/celery_app/core/errors"
+import (
+	e "celery_client/celery_app/core/errors"
+	"errors"
+)
 
 var Exception BaseException = BaseException{
 	ExceptionType:   "Exception",
@@ -25,6 +27,7 @@ func RegisterNewExceptions(ex map[string]BaseException) error {
 	return nil
 }
 
+// GetException make celery-like exception from Go error
 func GetException(err error, exceptionMessage []string) *ExceptionInfo {
 	var exception BaseException = Exception
 	if exc, ok := goToPyException[err.Error()]; ok {

@@ -1,7 +1,7 @@
 package base_tasks
 
 import (
-	interf "celery_client/celery_app/core/interfaces"
+	protocol "celery_client/celery_app/core/dto/protocol"
 
 	_ "github.com/google/uuid"
 )
@@ -9,7 +9,7 @@ import (
 type AddTask struct {
 	X float64 `json:"x"`
 	Y float64 `json:"y"`
-	BaseTask
+	protocol.CeleryTask
 }
 
 func (t *AddTask) Message() (any, error) {
@@ -17,49 +17,24 @@ func (t *AddTask) Message() (any, error) {
 	return 1, nil
 }
 
-func (t *AddTask) Run() (any, error) { // тут надо сделать сериализемый возвращаемый тип
+func (t *AddTask) Run() (any, error) {
 	if t == nil {
 		panic("хуй")
 	}
 	return t.X + t.Y, nil
 }
 
-// Только переменные
-func NewAddTask(rawTask interf.Tasks) (interf.BaseTasks, error) {
-	//parseTask, err := protocol.ParseTask(message)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//fmt.Println(parseTask)
-	args := rawTask.Args()
+// Возвращаемый тип должен уподоблять интерфейсу задачи.
+// В конструкторе необходимо парсить аргументы в структуру для дальнейшей работы
+// и приводить типы. Наличие и остутствие переменных, равно как и их
+// последовательность остается на разработчике.
+func NewAddTask(rawTask protocol.CeleryTask) (AddTask, error) {
+	args := rawTask.Body.Args
 	task := AddTask{
-		X:        args[0].(float64),
-		Y:        args[1].(float64),
-		BaseTask: NewBaseTask(rawTask),
-		// BaseTask: BaseTask{name: "name"},
+		X:          args[0].(float64),
+		Y:          args[1].(float64),
+		CeleryTask: rawTask,
 	}
 
-	//err = json.Unmarshal(message, &task)
-	//if err != nil {
-	//	return nil, err
-	//}
-
-	return &task, nil
-	//name, ok := message["name"].(string)
-	//if !ok {
-	//	panic("NO NAME ERROR")
-	//}
-	//
-	//task := AddTask{
-	//	BaseTask: NewBaseTask(name),
-	//}
-	//
-	//if x, ok := message["x"]; ok {
-	//	task.X = x.(float64)
-	//}
-	//if y, ok := message["y"]; ok {
-	//	task.Y = y.(float64)
-	//}
-	//
-	//return task, nil
+	return task, nil
 }

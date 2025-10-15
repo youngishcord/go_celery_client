@@ -10,7 +10,7 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func NewTask(rawTask amqp.Delivery) *protocol.CeleryTask {
+func NewTask(rawTask amqp.Delivery) protocol.CeleryTask {
 
 	body, err := protocol.ParsePayload(rawTask.Body)
 	if err != nil {
@@ -25,7 +25,7 @@ func NewTask(rawTask amqp.Delivery) *protocol.CeleryTask {
 	correlationID, err := uuid.Parse(rawTask.CorrelationId)
 	replyTo, err := uuid.Parse(rawTask.ReplyTo)
 
-	return &protocol.CeleryTask{
+	return protocol.CeleryTask{
 		ContentEncoding: rawTask.ContentEncoding,
 		ContentType:     rawTask.ContentType,
 		Body:            body,

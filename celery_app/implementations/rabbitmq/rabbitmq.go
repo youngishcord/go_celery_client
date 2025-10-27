@@ -67,7 +67,7 @@ func (b *RabbitMQ) connect(conf conf.CeleryConf) error {
 	// Это конфиг, который должен быть настраиваемый снаружи
 	// prefetch count должен быть настроен по количеству воркеров в пуле
 	err = ch.Qos(
-		2,     // prefetch count
+		1,     // prefetch count
 		0,     // prefetch size (0 means unlimited)
 		false, // global (false = per consumer, true = per channel)
 	)

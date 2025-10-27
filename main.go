@@ -1,7 +1,7 @@
 package main
 
 import (
-	celery "celery_client/celery_app"
+	celery "celery_client/celery_app/app"
 	"celery_client/celery_app/celery_conf"
 	"celery_client/celery_app/core/dto"
 	base_tasks "celery_client/celery_app/tasks"
@@ -56,7 +56,7 @@ func main() {
 		return
 	}
 
-	app.StartMessageDriver()
+	// app.StartMessageDriver()
 	err = app.RunWorker()
 	if err != nil {
 		fmt.Println(err)

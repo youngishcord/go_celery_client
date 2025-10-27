@@ -5,13 +5,14 @@ import celery
 import numpy as np
 from celery import Task
 from celery.result import ResultSet
+from sklearn import base
 
 app = celery.Celery(
 	"publisher",
-	# broker="amqp://guest:guest@localhost:5545//",
-	broker="redis://localhost:5546/0",
-	# backend="rpc://",
-	backend="redis://localhost:5546/1",
+	broker="amqp://guest:guest@localhost:5545//",
+	# broker="redis://localhost:5546/0",
+	backend="rpc://",
+	# backend="redis://localhost:5546/1",
 )
 # app.conf.worker_prefetch_multiplier = 1  # Только одна задача на процесс
 # app.conf.worker_concurrency = 1          # Количество процессов
@@ -46,6 +47,11 @@ def test2(*args, **kwargs):
 
 
 def pub_message():
+    
+    # Базовая задача для теста через кастомный конструктор
+    base_task = CustomTask("add").s().set(queue="asdf")
+    res = base_task.delay(1, 2)
+    print(res.get())
     
     # chain
     # t1 = CustomTask("test_task1").s().set(queue="qwer")
@@ -86,12 +92,12 @@ def pub_message():
     # res = add.delay(1, 2)
     # res = ""
     # for i in range(10):
-    t2 = CustomTask("test_task2").s().set(queue="asdf")
-    t3 = CustomTask("test_task3").s().set(queue="asdf")
-    t = CustomTask("test_task3").s().set(queue="qwer")
-    ch = t | t2 | t3
-    res = ch.delay()
-    print(res)
+    # t2 = CustomTask("test_task2").s().set(queue="asdf")
+    # t3 = CustomTask("test_task3").s().set(queue="asdf")
+    # t = CustomTask("test_task3").s().set(queue="qwer")
+    # ch = t | t2 | t3
+    # res = ch.delay()
+    # print(res)
     # time.sleep(15)
     # print(res.get())
 

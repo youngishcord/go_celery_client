@@ -5,28 +5,59 @@ import (
 	"celery_client/celery_app/core/dto/protocol"
 	e "celery_client/celery_app/core/errors"
 	"celery_client/celery_app/core/exceptions"
-	interf "celery_client/celery_app/core/interfaces"
 	rabbit "celery_client/celery_app/implementations/rabbitmq"
 	"celery_client/celery_app/implementations/redis_client"
-	. "celery_client/celery_app/message/result"
+
+	result "celery_client/celery_app/message/result"
 	"fmt"
 	"log"
 )
 
+type Broker interface {
+	// Connect(queues []string) error
+	// TaskChannel() chan amqp.Delivery // Я только что понял, что этот интерфейс не
+	// будет работать с Redis, поскольку он не универсален
+	// Consume() (<-chan UniversalMessageCustomType)
+
+	// Connection() amqp.Connection
+
+	// TODO: стоит переименовать данный метод в нечто более подходящее
+	// По итогу реализация отвечает за получение задач из очереди и складывание их в канал,
+	// я просто возвращаю канал, для дальнейшего прослушиывания.
+	// TODO: можно реализовать модель базового брокера, которая будет автоматически включать нужные каналы.
+	ConsumeTask() <-chan protocol.CeleryTask // Функция получения сообщения от брокера
+}
+
+type Backend interface {
+	// FIXME: тут возникает циклический импорт при попытке передать интерфейс задачи,
+	//  поскольку интерфейс задачи включает базовый интерфейс задачи, который лежит в пакете с интерфейсами.
+	PublishResult(result any, celeryTask protocol.CeleryTask) error
+	// FIXME: Мне не нравится,
+	//  что тут разные интерфейсы у публикации результата и ошибки. Возможно стоит оставить
+	//  только интерфейс сырой таски, поскольку он также имеет метод получения id задачи
+	PublishException(result any, celeryTask protocol.CeleryTask, trace string) error
+	ConsumeResult(taskID string) (<-chan result.CeleryResult, error)
+}
+
+type Task interface {
+	Run() (any, error)
+	Message() (any, error)
+}
+
 type CeleryApp struct {
-	TasksRegistry map[string]func(task protocol.CeleryTask) (interf.Task, error)
-	// TaskPoolCh    chan interf.BaseTasks
+	TasksRegistry map[string]func(task protocol.CeleryTask) (Task, error)
+	// TaskPoolCh    chan BaseTasks
 
-	ResultCh chan CeleryResult
+	ResultCh chan result.CeleryResult
 
-	Broker  interf.Broker  // Наверное структура или интерфейс, которая описывает подключение к брокеру
-	Backend interf.Backend // Наверное структура или интерфейс, которая описывает подключение к бекенду
+	Broker  Broker  // Наверное структура или интерфейс, которая описывает подключение к брокеру
+	Backend Backend // Наверное структура или интерфейс, которая описывает подключение к бекенду
 	// думаю всетаки интерфейсы, поскольку и брокер и бекенд могут быть разными (redis и rabbit)
 
 	appConf conf.CeleryConf
 }
 
-func (a *CeleryApp) RegisterTask(name string, constructor func(task protocol.CeleryTask) (interf.Task, error)) error {
+func (a *CeleryApp) RegisterTask(name string, constructor func(task protocol.CeleryTask) (Task, error)) error {
 	if _, ok := a.TasksRegistry[name]; ok {
 		return fmt.Errorf("ЗАДАЧА С ТАКИМ ИМЕНЕМ УЖЕ ЗАРЕГИСТРИРОВАНА")
 	}
@@ -36,7 +67,7 @@ func (a *CeleryApp) RegisterTask(name string, constructor func(task protocol.Cel
 
 // GetTask Получение задачи из реестра.
 // Может быть приватный?
-func (a *CeleryApp) GetTask(name string) (interf.Task, error) {
+func (a *CeleryApp) GetTask(name string) (Task, error) {
 	return nil, nil
 }
 
@@ -84,19 +115,19 @@ func (a *CeleryApp) RunWorker() error {
 // Delay Отправка задачи в очередь
 // Метод должен возвращать сущность задачи, которую можно поставить на
 // ожидание и получить результат.
-func (a *CeleryApp) Delay(task_name string, args []any, kwargs map[any]any) interf.Task {
+func (a *CeleryApp) Delay(task_name string, args []any, kwargs map[any]any) Task {
 	panic("IMPLEMENT ME")
 }
 
 // Get Получение результата задачи по ее сущности из backend
-func (a *CeleryApp) Get(task interf.Task) CeleryResult {
+func (a *CeleryApp) Get(task Task) result.CeleryResult {
 	panic("IMPLEMENT ME")
 }
 
 // MakeTask получает на вход параметры, находит конструктор задачи, фармирует
 // структуру и возвращает ее для дальнейшей обработки.
-func (a *CeleryApp) MakeTask(task protocol.CeleryTask) (interf.Task, error) {
-	f, ok := a.TasksRegistry[task.Headers.Task]
+func (a *CeleryApp) MakeTask(task protocol.CeleryTask) (Task, error) {
+	constructor, ok := a.TasksRegistry[task.Headers.Task]
 	if !ok {
 		_ = a.Backend.PublishException(
 			exceptions.GetException(e.NotRegistered,
@@ -109,7 +140,7 @@ func (a *CeleryApp) MakeTask(task protocol.CeleryTask) (interf.Task, error) {
 	}
 
 	// Registered constructor function allready return error
-	return f(task)
+	return constructor(task)
 
 	// newTask, _ := f(task)
 
@@ -144,10 +175,10 @@ func (a *CeleryApp) StartMessageDriver() {
 	}()
 }
 
-func NewBrokerAndBackend(conf conf.CeleryConf) (interf.Broker, interf.Backend) {
+func NewBrokerAndBackend(conf conf.CeleryConf) (Broker, Backend) {
 	// TODO: расширение функциональности для работы с redis
-	var broker interf.Broker
-	var backend interf.Backend
+	var broker Broker
+	var backend Backend
 	// var err error
 
 	switch conf.Broker.BrokerType {
@@ -159,7 +190,7 @@ func NewBrokerAndBackend(conf conf.CeleryConf) (interf.Broker, interf.Backend) {
 
 	switch conf.Backend.BackendType {
 	case "RPC":
-		if tmp, ok := broker.(interf.Backend); ok {
+		if tmp, ok := broker.(Backend); ok {
 			backend = tmp
 		}
 	case "Redis":
@@ -176,8 +207,8 @@ func NewCeleryApp(conf conf.CeleryConf) *CeleryApp {
 	broker, backend := NewBrokerAndBackend(conf)
 
 	app := &CeleryApp{
-		TasksRegistry: map[string]func(task protocol.CeleryTask) (interf.Task, error){},
-		ResultCh:      make(chan CeleryResult, 1),
+		TasksRegistry: map[string]func(task protocol.CeleryTask) (Task, error){},
+		ResultCh:      make(chan result.CeleryResult, 1),
 		Broker:        broker,
 		Backend:       backend,
 		appConf:       conf,

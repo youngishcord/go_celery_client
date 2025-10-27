@@ -1,6 +1,7 @@
 package base_tasks
 
 import (
+	app "celery_client/celery_app/app"
 	protocol "celery_client/celery_app/core/dto/protocol"
 
 	_ "github.com/google/uuid"
@@ -28,7 +29,7 @@ func (t *AddTask) Run() (any, error) {
 // В конструкторе необходимо парсить аргументы в структуру для дальнейшей работы
 // и приводить типы. Наличие и остутствие переменных, равно как и их
 // последовательность остается на разработчике.
-func NewAddTask(rawTask protocol.CeleryTask) (AddTask, error) {
+func NewAddTask(rawTask protocol.CeleryTask) (app.Task, error) {
 	args := rawTask.Body.Args
 	task := AddTask{
 		X:          args[0].(float64),
@@ -36,5 +37,5 @@ func NewAddTask(rawTask protocol.CeleryTask) (AddTask, error) {
 		CeleryTask: rawTask,
 	}
 
-	return task, nil
+	return &task, nil
 }

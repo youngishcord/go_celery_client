@@ -5,7 +5,6 @@ import celery
 import numpy as np
 from celery import Task
 from celery.result import ResultSet
-from sklearn import base
 
 app = celery.Celery(
 	"publisher",

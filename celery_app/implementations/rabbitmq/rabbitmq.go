@@ -14,8 +14,8 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-// Структура, хранящее подключение к RabbitMQ
-type RabbitMQ struct {
+// Структура, хранящее подключение к Rabbit
+type Rabbit struct {
 	Conn      *amqp.Connection
 	Consumer  *amqp.Channel
 	Publisher *amqp.Channel
@@ -30,7 +30,7 @@ type RabbitMQ struct {
 	pass string
 }
 
-func (b *RabbitMQ) connect(conf conf.CeleryConf) error {
+func (b *Rabbit) connect(conf conf.CeleryConf) error {
 	conn, err := amqp.Dial(b.url())
 	if err != nil {
 		panic("NO RABBITMQ CONNECTION")
@@ -67,9 +67,9 @@ func (b *RabbitMQ) connect(conf conf.CeleryConf) error {
 	// Это конфиг, который должен быть настраиваемый снаружи
 	// prefetch count должен быть настроен по количеству воркеров в пуле
 	err = ch.Qos(
-		1,     // prefetch count
-		0,     // prefetch size (0 means unlimited)
-		false, // global (false = per consumer, true = per channel)
+		conf.Worker.WorkerConcurrency, // prefetch count
+		0,                             // prefetch size (0 means unlimited)
+		false,                         // global (false = per consumer, true = per channel)
 	)
 	if err != nil {
 		panic("BAD QOS SETTINGS")
@@ -86,7 +86,7 @@ func (b *RabbitMQ) connect(conf conf.CeleryConf) error {
 				queue,
 				// TODO: тут надо сделать кастомное имя для консюмера из конфигурации
 				fmt.Sprintf("consumer_%d", index), // index
-				true,                              // TODO: autoAck должен быть false по идее
+				false,                             // TODO: autoAck должен быть false по идее
 				false,
 				false,
 				false,
@@ -106,8 +106,8 @@ func (b *RabbitMQ) connect(conf conf.CeleryConf) error {
 	return nil
 }
 
-func NewAMQPBroker(conf conf.CeleryConf) *RabbitMQ {
-	broker := &RabbitMQ{
+func NewAMQPBroker(conf conf.CeleryConf) *Rabbit {
+	broker := &Rabbit{
 		Host:   conf.Broker.ConnectionData.Host,
 		Port:   conf.Broker.ConnectionData.Port,
 		user:   conf.Broker.ConnectionData.User,

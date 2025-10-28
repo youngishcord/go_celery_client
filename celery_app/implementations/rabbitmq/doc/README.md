@@ -14,7 +14,7 @@ task (имя задачи),
 docs.celeryq.dev
 +1
 
-RPC-результат. При включённом result_backend="rpc://" клиент Celery при отправке задачи указывает свойства AMQP reply_to (имя свою «callback» очереди) и correlation_id (обычно task_id). Воркеры должны ответить в очередь reply_to и проставить тот же correlation_id. Это стандартный шаблон RabbitMQ RPC и именно так устроен Celery RPC-бэкенд.
+RPC-результат. При включённом result_backend="rpc://" клиент Celery при отправке задачи указывает свойства AMQP reply_to (имя свою «callback» очереди) и correlation_id (обычно task_id). Воркеры должны ответить в очередь reply_to и проставить тот же correlation_id. Это стандартный шаблон Rabbit RPC и именно так устроен Celery RPC-бэкенд.
 docs.celeryq.dev
 +1
 rabbitmq.com

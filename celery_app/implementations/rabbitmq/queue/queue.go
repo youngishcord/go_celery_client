@@ -12,7 +12,18 @@ type Queue struct {
 	AutoDelete bool       // queue that has had at least one consumer is deleted when last consumer unsubscribes
 	Exclusive  bool       // used by only one connection and the queue will be deleted when that connection closes
 	NoWait     bool       //
-	Args       amqp.Table // не знаю что может лежать в аргсах
+	Args       amqp.Table // Не знаю что может лежать в аргсах
+}
+
+func NewCustomQueue(name string, durable, autoDelete, exclusive, noWait bool, args amqp.Table) *Queue {
+	return &Queue{
+		Name:       name,
+		Durable:    true,
+		AutoDelete: false,
+		Exclusive:  false,
+		NoWait:     false,
+		Args:       nil,
+	}
 }
 
 func NewDefaultQueue(name string) *Queue {

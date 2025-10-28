@@ -45,11 +45,11 @@ func NewTask(rawTask amqp.Delivery) protocol.CeleryTask {
 	}
 }
 
-func (b *RabbitMQ) url() string {
+func (b *Rabbit) url() string {
 	return fmt.Sprintf("amqp://%s:%s@%s:%s/", b.user, b.pass, b.Host, b.Port)
 }
 
-func (b *RabbitMQ) declareQueue(queue q.Queue) {
+func (b *Rabbit) declareQueue(queue q.Queue) {
 	if b.Consumer == nil {
 		panic("CHANNEL NOT OPEN")
 	}

@@ -1,12 +1,17 @@
 package celery_conf
 
-import (
-	"celery_client/celery_app/core/dto"
-)
-
 // Надо посмотреть какие настройки я могу перенести
 type CeleryConf struct {
-	Broker  dto.BrokerDto
-	Backend dto.BackendDto
+	Broker  BrokerSettings
+	Backend BackendSettings
+	Worker  WorkerSettings
 	Queues  []string
+}
+
+// Connection Не круто, что у меня тут пароль и логин но пока что так
+type Connection struct {
+	Host string
+	Port string
+	User string
+	Pass string
 }

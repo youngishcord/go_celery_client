@@ -6,12 +6,11 @@ import (
 	result "celery_client/celery_app/message/result"
 	"context"
 	"encoding/json"
-	"time"
 )
 
 // TODO: ttl должен быть настраиваемый
-func (b *RedisClient) PublishResult(result any, task protocol.CeleryTask) error {
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+func (b *RedisClient) PublishResult(ctx context.Context, result any, task protocol.CeleryTask) error {
+	// ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	body, err := json.Marshal(protocol.NewCeleryResult(s.SUCCESS, result, "", task.Headers.Id))
 	if err != nil {
 		return err
@@ -27,7 +26,7 @@ func (b *RedisClient) ConsumeResult(taskID string) (<-chan result.CeleryResult, 
 	panic("implement me")
 }
 
-func (b *RedisClient) PublishException(result any, baseTasks protocol.CeleryTask, trace string) error {
+func (b *RedisClient) PublishException(ctx context.Context, result any, baseTasks protocol.CeleryTask, trace string) error {
 	//TODO implement me
 	panic("implement me")
 }

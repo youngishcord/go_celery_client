@@ -7,6 +7,10 @@ import (
 	"celery_client/celery_app/core/exceptions"
 	rabbit "celery_client/celery_app/implementations/rabbitmq"
 	"celery_client/celery_app/implementations/redis_client"
+	"context"
+
+	// "context"
+	// "time"
 
 	result "celery_client/celery_app/message/result"
 	"fmt"
@@ -34,12 +38,12 @@ type Broker interface {
 type Backend interface {
 	// FIXME: тут возникает циклический импорт при попытке передать интерфейс задачи,
 	//  поскольку интерфейс задачи включает базовый интерфейс задачи, который лежит в пакете с интерфейсами.
-	PublishResult(result any, celeryTask protocol.CeleryTask) error
+	PublishResult(ctx context.Context, result any, celeryTask protocol.CeleryTask) error
 
 	// PublishException FIXME: Мне не нравится,
 	//  что тут разные интерфейсы у публикации результата и ошибки. Возможно стоит оставить
 	//  только интерфейс сырой таски, поскольку он также имеет метод получения id задачи
-	PublishException(result any, celeryTask protocol.CeleryTask, trace string) error
+	PublishException(ctx context.Context, result any, celeryTask protocol.CeleryTask, trace string) error
 	ConsumeResult(taskID string) (<-chan result.CeleryResult, error)
 
 	// Get метод получения результатов отправленной в очередь задачи
@@ -47,7 +51,7 @@ type Backend interface {
 }
 
 type Task interface {
-	Run() (any, error)
+	Run(ctx context.Context) (any, error)
 	Message() (any, error)
 }
 
@@ -113,10 +117,11 @@ func (a *CeleryApp) Get(task Task) result.CeleryResult {
 
 // MakeTask получает на вход параметры, находит конструктор задачи, фармирует
 // структуру и возвращает ее для дальнейшей обработки.
-func (a *CeleryApp) MakeTask(task protocol.CeleryTask) (Task, error) {
+func (a *CeleryApp) MakeTask(ctx context.Context, task protocol.CeleryTask) (Task, error) {
 	constructor, ok := a.TasksRegistry[task.Headers.Task]
 	if !ok {
 		_ = a.Backend.PublishException(
+			ctx,
 			exceptions.GetException(e.NotRegistered,
 				[]string{task.Headers.Task}),
 			task,
@@ -130,6 +135,30 @@ func (a *CeleryApp) MakeTask(task protocol.CeleryTask) (Task, error) {
 	return constructor(task)
 }
 
+func (a *CeleryApp) processTask(celeryTask protocol.CeleryTask, workerIndex int) {
+
+	ctx, cancel := context.WithTimeout(context.Background(), celeryTask.Headers.TimeLimit.Hard)
+	defer cancel()
+
+	softCtx, softCancel := context.WithTimeout(ctx, celeryTask.Headers.TimeLimit.Soft)
+	defer softCancel()
+
+	task, err := a.MakeTask(softCtx, celeryTask)
+	if err != nil {
+		panic(err) // FIXME: Send error from worker
+	}
+
+	taskResult, err := task.Run(softCtx)
+	if err != nil {
+		panic(err) // FIXME: Send error from worker
+	}
+
+	err = a.Backend.PublishResult(softCtx, taskResult, celeryTask)
+	if err != nil {
+		panic(err) // FIXME: Send error from worker
+	}
+}
+
 // FIXME: Переделать в приватный и вызывать в конструкторе
 func (a *CeleryApp) startMessageDriver() {
 	a.taskCh = a.Broker.ConsumeTask()
@@ -137,20 +166,7 @@ func (a *CeleryApp) startMessageDriver() {
 	for i := 0; i < a.appConf.Worker.WorkerConcurrency; i++ {
 		go func(counter int) {
 			for celeryTask := range a.taskCh {
-				task, err := a.MakeTask(celeryTask)
-				if err != nil {
-					panic(err) // FIXME: Send error from worker
-				}
-
-				taskResult, err := task.Run()
-				if err != nil {
-					panic(err) // FIXME: Send error from worker
-				}
-
-				err = a.Backend.PublishResult(taskResult, celeryTask)
-				if err != nil {
-					panic(err) // FIXME: Send error from worker
-				}
+				a.processTask(celeryTask, counter)
 			}
 		}(i)
 	}

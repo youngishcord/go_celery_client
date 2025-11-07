@@ -32,8 +32,8 @@ type Header struct {
 }
 
 type TimeLimit struct {
-	Soft time.Duration `json:"soft"`
-	Hard time.Duration `json:"hard"`
+	Soft time.Duration `json:"soft"` // Seconds
+	Hard time.Duration `json:"hard"` // Seconds
 }
 
 func ParseHeader(data map[string]interface{}) (Header, error) {

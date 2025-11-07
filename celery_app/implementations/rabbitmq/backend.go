@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
 	s "celery_client/celery_app/core/dto"
 	protocol "celery_client/celery_app/core/dto/protocol"
@@ -20,7 +19,7 @@ func (b *Rabbit) ConsumeResult(taskID string) (<-chan r.CeleryResult, error) {
 }
 
 // Отношение к интерфейсу backend при работе с RPC
-func (b *Rabbit) PublishResult(result any, task protocol.CeleryTask) error {
+func (b *Rabbit) PublishResult(ctx context.Context, result any, task protocol.CeleryTask) error {
 	// TODO: тут стоит задуматься над тем что будет, если во второй операции выпадет ошибка, а
 	//  первая уже будет выполнена
 	// TODO: Подтверждение результата должно быть другим. Я возвращаю тут результат
@@ -39,7 +38,7 @@ func (b *Rabbit) PublishResult(result any, task protocol.CeleryTask) error {
 	}
 
 	// TODO: тут надо поправить работу с функцией обработки таймаута
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	// ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	err = b.Publisher.PublishWithContext(
 		ctx,
 		"",
@@ -67,12 +66,12 @@ func (b *Rabbit) PublishResult(result any, task protocol.CeleryTask) error {
 }
 
 // TODO: Наверное можно вынести в один метод publish, но пока что пусть будет так
-func (b *Rabbit) PublishException(result any, task protocol.CeleryTask, trace string) error {
+func (b *Rabbit) PublishException(ctx context.Context, result any, task protocol.CeleryTask, trace string) error {
 	body, err := json.Marshal(protocol.NewCeleryResult(s.FAILURE, result, trace, task.Headers.Id))
 	if err != nil {
 		return err
 	}
-	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	// ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
 	err = b.Publisher.PublishWithContext(
 		ctx,
 		"",

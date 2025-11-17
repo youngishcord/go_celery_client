@@ -8,12 +8,13 @@ import (
 	rabbit "celery_client/celery_app/implementations/rabbitmq"
 	"celery_client/celery_app/implementations/redis_client"
 	"context"
+	"log"
+
 	// "context"
 	// "time"
 
 	result "celery_client/celery_app/message/result"
 	"fmt"
-	"log"
 )
 
 type Broker interface {
@@ -119,17 +120,8 @@ func (a *CeleryApp) Get(task Task) result.CeleryResult {
 func (a *CeleryApp) MakeTask(ctx context.Context, task protocol.CeleryTask) (Task, error) {
 	constructor, ok := a.TasksRegistry[task.Headers.Task]
 	if !ok {
-		_ = a.Backend.PublishException(
-			ctx,
-			exceptions.GetException(e.ErrNotRegistered,
-				[]string{task.Headers.Task}),
-			task,
-			"test trace",
-		)
-		log.Println("TASK NOT FOUND")
 		return nil, e.ErrNotRegistered
 	}
-
 	return constructor(task)
 }
 
@@ -143,6 +135,17 @@ func (a *CeleryApp) processTask(celeryTask protocol.CeleryTask, workerIndex int)
 
 	task, err := a.MakeTask(softCtx, celeryTask)
 	if err != nil {
+		log.Println("TASK NOT FOUND")
+		err = a.Backend.PublishException(
+			context.Background(),
+			exceptions.GetException(e.ErrNotRegistered,
+				[]string{celeryTask.Headers.Task}),
+			celeryTask,
+			"test trace",
+		)
+		if err != nil {
+			log.Println(err)
+		}
 		return
 	}
 
@@ -155,14 +158,14 @@ func (a *CeleryApp) processTask(celeryTask protocol.CeleryTask, workerIndex int)
 			"test trace",
 		)
 		if err != nil {
-			panic(err) // FIXME: Send error from worker
+			log.Println(err)
 		}
 		return
 	}
 
 	err = a.Backend.PublishResult(softCtx, taskResult, celeryTask)
 	if err != nil {
-		panic(err) // FIXME: Send error from worker
+		log.Println(err)
 	}
 }
 

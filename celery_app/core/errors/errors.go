@@ -4,5 +4,6 @@ import "errors"
 
 // celery errors
 var (
-	NotRegistered = errors.New("NotRegistered")
+	ErrNotRegistered         = errors.New("NotRegistered")
+	ErrSoftTimeLimitExceeded = errors.New("SoftTimeLimitExceeded")
 )

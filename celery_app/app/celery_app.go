@@ -51,7 +51,7 @@ type Backend interface {
 }
 
 type Task interface {
-	Run(ctx context.Context) (any, error)
+	Run() (any, error)
 	Message() (any, error)
 }
 
@@ -122,13 +122,13 @@ func (a *CeleryApp) MakeTask(ctx context.Context, task protocol.CeleryTask) (Tas
 	if !ok {
 		_ = a.Backend.PublishException(
 			ctx,
-			exceptions.GetException(e.NotRegistered,
+			exceptions.GetException(e.ErrNotRegistered,
 				[]string{task.Headers.Task}),
 			task,
 			"test trace",
 		)
 		log.Println("TASK NOT FOUND")
-		return nil, e.NotRegistered
+		return nil, e.ErrNotRegistered
 	}
 
 	// Registered constructor function already return error
@@ -148,15 +148,49 @@ func (a *CeleryApp) processTask(celeryTask protocol.CeleryTask, workerIndex int)
 		panic(err) // FIXME: Send error from worker
 	}
 
-	taskResult, err := task.Run(softCtx)
-	if err != nil {
-		panic(err) // FIXME: Send error from worker
+	var taskResult any
+	errCh := make(chan error, 1)
+	doneCh := make(chan bool, 1)
+
+	go func() {
+		done := make(chan struct{}, 1)
+
+		var res any
+		go func() {
+			res, err = task.Run()
+			if err != nil {
+				errCh <- err
+				panic(err) // FIXME: Send error from worker
+			}
+			done <- 
+		}()
+
+		switch {
+		case <-done:
+			taskResult = res
+			err = nil
+			doneCh <- true
+		case <-softCtx.Done():
+			taskResult = nil
+			err = e.ErrSoftTimeLimitExceeded
+			doneCh <- false
+		}
+	}()
+
+	select {
+	case <-doneCh:
+		err = a.Backend.PublishResult(softCtx, taskResult, celeryTask)
+		if err != nil {
+			panic(err) // FIXME: Send error from worker
+		}
+	case <-errCh:
+		// err = a.Backend.PublishException(softCtx, )
+		// if err != nil {
+		// 	return nil, err
+		// }
+
 	}
 
-	err = a.Backend.PublishResult(softCtx, taskResult, celeryTask)
-	if err != nil {
-		panic(err) // FIXME: Send error from worker
-	}
 }
 
 // FIXME: Переделать в приватный и вызывать в конструкторе

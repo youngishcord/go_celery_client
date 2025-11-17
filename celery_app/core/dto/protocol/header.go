@@ -113,6 +113,28 @@ func ParseHeader(data map[string]interface{}) (Header, error) {
 		}
 	}
 
+	if timelimit, ok := data["timelimit"].([]interface{}); ok && len(timelimit) == 2 {
+		if soft, ok := timelimit[0].(int64); ok {
+			if hard, ok := timelimit[1].(int64); ok {
+				header.TimeLimit = &TimeLimit{
+					Soft: time.Duration(soft) * time.Second,
+					Hard: time.Duration(hard) * time.Second,
+				}
+			}
+		}
+	}
+
+	if timelimit, ok := data["timelimit"].([]interface{}); ok && len(timelimit) == 2 {
+		if soft, ok := timelimit[0].(int32); ok {
+			if hard, ok := timelimit[1].(int32); ok {
+				header.TimeLimit = &TimeLimit{
+					Soft: time.Duration(soft) * time.Second,
+					Hard: time.Duration(hard) * time.Second,
+				}
+			}
+		}
+	}
+
 	if argsrepr, ok := data["argsrepr"].(string); ok {
 		header.ArgsRepr = argsrepr
 	}

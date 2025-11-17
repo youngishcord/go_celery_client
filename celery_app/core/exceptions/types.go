@@ -12,12 +12,12 @@ var Exception BaseException = BaseException{
 
 var goToPyException = map[string]BaseException{
 	e.ErrNotRegistered.Error(): {
-		ExceptionType:   "NotRegistered",
+		ExceptionType:   e.ErrNotRegistered.Error(),
 		ExceptionModule: "celery.exceptions",
 	},
 
 	e.ErrSoftTimeLimitExceeded.Error(): {
-		ExceptionType:   e.ErrNotRegistered.Error(),
+		ExceptionType:   e.ErrSoftTimeLimitExceeded.Error(),
 		ExceptionModule: "celery.exceptions",
 	},
 }

@@ -3,6 +3,7 @@ package redis_client
 import (
 	s "celery_client/celery_app/core/dto"
 	"celery_client/celery_app/core/dto/protocol"
+	"celery_client/celery_app/core/exceptions"
 	result "celery_client/celery_app/message/result"
 	"context"
 	"encoding/json"
@@ -26,7 +27,7 @@ func (b *RedisClient) ConsumeResult(taskID string) (<-chan result.CeleryResult, 
 	panic("implement me")
 }
 
-func (b *RedisClient) PublishException(ctx context.Context, result any, baseTasks protocol.CeleryTask, trace string) error {
+func (b *RedisClient) PublishException(ctx context.Context, exc *exceptions.ExceptionInfo, baseTasks protocol.CeleryTask, trace string) error {
 	//TODO implement me
 	panic("implement me")
 }

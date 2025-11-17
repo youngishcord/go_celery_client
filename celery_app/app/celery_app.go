@@ -8,7 +8,6 @@ import (
 	rabbit "celery_client/celery_app/implementations/rabbitmq"
 	"celery_client/celery_app/implementations/redis_client"
 	"context"
-
 	// "context"
 	// "time"
 
@@ -43,7 +42,7 @@ type Backend interface {
 	// PublishException FIXME: Мне не нравится,
 	//  что тут разные интерфейсы у публикации результата и ошибки. Возможно стоит оставить
 	//  только интерфейс сырой таски, поскольку он также имеет метод получения id задачи
-	PublishException(ctx context.Context, result any, celeryTask protocol.CeleryTask, trace string) error
+	PublishException(ctx context.Context, exc *exceptions.ExceptionInfo, celeryTask protocol.CeleryTask, trace string) error
 	ConsumeResult(taskID string) (<-chan result.CeleryResult, error)
 
 	// Get метод получения результатов отправленной в очередь задачи
@@ -51,7 +50,7 @@ type Backend interface {
 }
 
 type Task interface {
-	Run() (any, error)
+	Run(ctx context.Context) (any, error)
 	Message() (any, error)
 }
 
@@ -131,66 +130,40 @@ func (a *CeleryApp) MakeTask(ctx context.Context, task protocol.CeleryTask) (Tas
 		return nil, e.ErrNotRegistered
 	}
 
-	// Registered constructor function already return error
 	return constructor(task)
 }
 
 func (a *CeleryApp) processTask(celeryTask protocol.CeleryTask, workerIndex int) {
 
-	ctx, cancel := context.WithTimeout(context.Background(), celeryTask.Headers.TimeLimit.Hard)
+	hardCtx, cancel := MakeContext(context.Background(), celeryTask.Headers.TimeLimit.Hard)
 	defer cancel()
 
-	softCtx, softCancel := context.WithTimeout(ctx, celeryTask.Headers.TimeLimit.Soft)
+	softCtx, softCancel := MakeContext(hardCtx, celeryTask.Headers.TimeLimit.Soft)
 	defer softCancel()
 
 	task, err := a.MakeTask(softCtx, celeryTask)
 	if err != nil {
-		panic(err) // FIXME: Send error from worker
+		return
 	}
 
-	var taskResult any
-	errCh := make(chan error, 1)
-	doneCh := make(chan bool, 1)
-
-	go func() {
-		done := make(chan struct{}, 1)
-
-		var res any
-		go func() {
-			res, err = task.Run()
-			if err != nil {
-				errCh <- err
-				panic(err) // FIXME: Send error from worker
-			}
-			done <- 
-		}()
-
-		switch {
-		case <-done:
-			taskResult = res
-			err = nil
-			doneCh <- true
-		case <-softCtx.Done():
-			taskResult = nil
-			err = e.ErrSoftTimeLimitExceeded
-			doneCh <- false
-		}
-	}()
-
-	select {
-	case <-doneCh:
-		err = a.Backend.PublishResult(softCtx, taskResult, celeryTask)
+	taskResult, err := RunWithTimeout(softCtx, hardCtx, task.Run)
+	if err != nil {
+		err := a.Backend.PublishException(
+			context.Background(), // Что тут делать с контекстом?
+			exceptions.GetException(err, []string{}),
+			celeryTask,
+			"test trace",
+		)
 		if err != nil {
 			panic(err) // FIXME: Send error from worker
 		}
-	case <-errCh:
-		// err = a.Backend.PublishException(softCtx, )
-		// if err != nil {
-		// 	return nil, err
-		// }
-
+		return
 	}
 
+	err = a.Backend.PublishResult(softCtx, taskResult, celeryTask)
+	if err != nil {
+		panic(err) // FIXME: Send error from worker
+	}
 }
 
 // FIXME: Переделать в приватный и вызывать в конструкторе

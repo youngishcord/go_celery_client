@@ -1,6 +1,7 @@
 package rabbit
 
 import (
+	"celery_client/celery_app/core/exceptions"
 	r "celery_client/celery_app/message/result"
 	"context"
 	"encoding/json"
@@ -66,8 +67,11 @@ func (b *Rabbit) PublishResult(ctx context.Context, result any, task protocol.Ce
 }
 
 // TODO: Наверное можно вынести в один метод publish, но пока что пусть будет так
-func (b *Rabbit) PublishException(ctx context.Context, result any, task protocol.CeleryTask, trace string) error {
-	body, err := json.Marshal(protocol.NewCeleryResult(s.FAILURE, result, trace, task.Headers.Id))
+func (b *Rabbit) PublishException(ctx context.Context, exc *exceptions.ExceptionInfo, task protocol.CeleryTask, trace string) error {
+	fmt.Println("publish exception")
+	fmt.Println(exc)
+
+	body, err := json.Marshal(protocol.NewCeleryResult(s.FAILURE, exc, trace, task.Headers.Id))
 	if err != nil {
 		return err
 	}

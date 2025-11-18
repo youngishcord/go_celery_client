@@ -34,6 +34,11 @@ func main() {
 		return
 	}
 
+	err = app.RegisterTask("pow", tasks.NewPowTask)
+	if err != nil {
+		return
+	}
+
 	// app.StartMessageDriver()
 	err = app.RunWorker()
 	if err != nil {

@@ -31,6 +31,8 @@ type Broker interface {
 	// TODO: можно реализовать модель базового брокера, которая будет автоматически включать нужные каналы.
 	ConsumeTask() <-chan protocol.CeleryTask // Функция получения сообщения от брокера
 
+	PublishTask(ctx context.Context, celeryTask protocol.CeleryTask) error
+
 	// Delay отправляет задачу в очередь на исполнение и возвращает ее идентификатор
 	// Delay() string
 }
@@ -161,6 +163,10 @@ func (a *CeleryApp) processTask(celeryTask protocol.CeleryTask, workerIndex int)
 			log.Println(err)
 		}
 		return
+	}
+
+	if celeryTask.Body.Emb.Chain != nil && len(celeryTask.Body.Emb.Chain) > 0 {
+
 	}
 
 	err = a.Backend.PublishResult(softCtx, taskResult, celeryTask)

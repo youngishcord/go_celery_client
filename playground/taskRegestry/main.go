@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"sync"
 )
@@ -10,7 +11,7 @@ type BaseMessages interface {
 }
 
 type BaseTasks interface {
-	Run() (any, error)
+	Run(ctx context.Context) (any, error)
 	Message() (any, error)
 	tmp()
 }
@@ -56,7 +57,7 @@ func (t *AddTask) Message() (any, error) {
 	return 1, nil
 }
 
-func (t *AddTask) Run() (any, error) {
+func (t *AddTask) Run(ctx context.Context) (any, error) {
 	if t == nil {
 		panic("хуй")
 	}

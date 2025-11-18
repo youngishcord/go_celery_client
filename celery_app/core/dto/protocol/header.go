@@ -32,8 +32,8 @@ type Header struct {
 }
 
 type TimeLimit struct {
-	Soft time.Duration `json:"soft"`
-	Hard time.Duration `json:"hard"`
+	Soft *time.Duration `json:"soft"` // Seconds
+	Hard *time.Duration `json:"hard"` // Seconds
 }
 
 func ParseHeader(data map[string]interface{}) (Header, error) {
@@ -103,13 +103,9 @@ func ParseHeader(data map[string]interface{}) (Header, error) {
 	}
 
 	if timelimit, ok := data["timelimit"].([]interface{}); ok && len(timelimit) == 2 {
-		if soft, ok := timelimit[0].(float64); ok {
-			if hard, ok := timelimit[1].(float64); ok {
-				header.TimeLimit = &TimeLimit{
-					Soft: time.Duration(soft) * time.Second,
-					Hard: time.Duration(hard) * time.Second,
-				}
-			}
+		header.TimeLimit = &TimeLimit{
+			Soft: GetDuration(timelimit[0]),
+			Hard: GetDuration(timelimit[1]),
 		}
 	}
 
@@ -134,4 +130,27 @@ func ParseHeader(data map[string]interface{}) (Header, error) {
 	}
 
 	return header, nil
+}
+
+func GetDuration(t any) *time.Duration {
+	var d time.Duration
+
+	if t != nil {
+		switch t.(type) {
+		case float64:
+			d = time.Duration(t.(float64) * float64(time.Second))
+		case float32:
+			d = time.Duration(t.(float32) * float32(time.Second))
+		case int64:
+			d = time.Duration(t.(int64)) * time.Second
+		case int32:
+			d = time.Duration(t.(int32)) * time.Second
+		case int:
+			d = time.Duration(t.(int)) * time.Second
+		}
+	} else {
+		return nil
+	}
+
+	return &d
 }

@@ -48,7 +48,8 @@ def test2(*args, **kwargs):
 def pub_message():
     
     # Базовая задача для теста через кастомный конструктор
-    base_task = CustomTask("add").s().set(queue="asdf")
+    # while 1:
+    base_task = CustomTask("add").s().set(queue="asdf",soft_time_limit=2,time_limit=30)
     res = base_task.delay(1, 2)
     print(res.get())
     

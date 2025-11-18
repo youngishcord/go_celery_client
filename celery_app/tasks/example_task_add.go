@@ -1,8 +1,10 @@
-package base_tasks
+package examples
 
 import (
 	app "celery_client/celery_app/app"
 	protocol "celery_client/celery_app/core/dto/protocol"
+	"context"
+	"time"
 
 	_ "github.com/google/uuid"
 )
@@ -18,7 +20,8 @@ func (t *AddTask) Message() (any, error) {
 	return 1, nil
 }
 
-func (t *AddTask) Run() (any, error) {
+func (t *AddTask) Run(ctx context.Context) (any, error) {
+	time.Sleep(1 * time.Second)
 	if t == nil {
 		panic("хуй")
 	}

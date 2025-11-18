@@ -3,7 +3,7 @@ import random
 import time
 import celery
 import numpy as np
-from celery import Task
+from celery import Task, chain
 from celery.result import ResultSet
 
 app = celery.Celery(
@@ -49,18 +49,19 @@ def pub_message():
     
     # Базовая задача для теста через кастомный конструктор
     # while 1:
-    base_task = CustomTask("add").s().set(queue="asdf",soft_time_limit=2,time_limit=30)
-    res = base_task.delay(1, 2)
-    print(res.get())
+    # base_task = CustomTask("add").s().set(queue="asdf")
+    # res = base_task.delay(4, 2)
+    # print(res.get())
     
     # chain
-    # t1 = CustomTask("test_task1").s().set(queue="qwer")
-    # t2 = CustomTask("test_task2").s().set(queue="asdf")
+    t1 = CustomTask("add").s().set(queue="asdf")
+    t2 = CustomTask("pow").s().set(queue="asdf")
     # t3 = CustomTask("test_task3").s().set(queue="qwer")
     
-    # ch = t1 | t2 | t3
+    ch = chain(t1, t2)
     
-    # ch.delay("q1w2e3r4")
+    res = ch.delay(1, 2).get()
+    print(res)
     
     ####################################################
     ####################################################

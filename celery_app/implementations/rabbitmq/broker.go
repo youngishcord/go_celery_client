@@ -14,11 +14,17 @@ func (b *Rabbit) ConsumeTask() <-chan protocol.CeleryTask {
 	return b.TaskCh
 }
 
+// Тут обработка отправки по цепочке, в дальнейшем, возможно, нужно будет отделить реализацию от других кейсов.
 func (b *Rabbit) PublishTask(ctx context.Context, celeryTask protocol.CeleryTask) error {
 
 	rawBody, err := json.Marshal(celeryTask.Body)
 
-	headers, err := json.Marshal(celeryTask.Headers)
+	headers, err := celeryTask.Headers.MakeMap()
+	if err != nil {
+		return err
+	}
+
+	nextTask := celeryTask.Body.Emb.Chain[len(celeryTask.Body.Emb.Chain)-1]
 
 	b.Publisher.PublishWithContext(
 		ctx,
@@ -30,11 +36,11 @@ func (b *Rabbit) PublishTask(ctx context.Context, celeryTask protocol.CeleryTask
 			ContentType:     celeryTask.ContentType,
 			CorrelationId:   celeryTask.Properties.CorrelationID.String(),
 			Body:            rawBody,
-			Headers:         amqp.Table{},
-			ContentEncoding: "",
-			DeliveryMode:    0,
-			Priority:        0,
-			ReplyTo:         "",
+			Headers:         amqp.Table(headers),
+			ContentEncoding: celeryTask.ContentEncoding,
+			DeliveryMode:    celeryTask.Properties.DeliveryMode,
+			Priority:        celeryTask.Properties.Priority,
+			ReplyTo:         nextTask.Opt.ReplyTo,
 			Expiration:      "",
 			MessageId:       "",
 			Timestamp:       time.Time{},

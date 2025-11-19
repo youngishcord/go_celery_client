@@ -166,12 +166,15 @@ func (a *CeleryApp) processTask(celeryTask protocol.CeleryTask, workerIndex int)
 	}
 
 	if celeryTask.Body.Emb.Chain != nil && len(celeryTask.Body.Emb.Chain) > 0 {
-
-	}
-
-	err = a.Backend.PublishResult(softCtx, taskResult, celeryTask)
-	if err != nil {
-		log.Println(err)
+		err = a.Broker.PublishTask(context.Background(), celeryTask)
+		if err != nil {
+			log.Println(err)
+		}
+	} else {
+		err = a.Backend.PublishResult(softCtx, taskResult, celeryTask)
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }
 

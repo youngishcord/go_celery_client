@@ -56,9 +56,9 @@ def pub_message():
     # chain
     t1 = CustomTask("add").s().set(queue="asdf")
     t2 = CustomTask("pow").s().set(queue="asdf")
-    # t3 = CustomTask("test_task3").s().set(queue="qwer")
+    t3 = CustomTask("test_task3").s().set(queue="qwer")
     
-    ch = chain(t1, t2)
+    ch = chain(t1, t2, t3)
     
     res = ch.delay(1, 2).get()
     print(res)

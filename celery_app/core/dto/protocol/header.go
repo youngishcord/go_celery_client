@@ -1,6 +1,8 @@
 package protocol
 
 import (
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -29,6 +31,23 @@ type Header struct {
 	IgnoreResult        bool           `json:"ignore_result,omitempty"`
 	StampedHeaders      any            `json:"stamped_headers,omitempty"` // TODO: Не знаю какой тут тип
 	Stamps              map[string]any `json:"stamps,omitempty"`          // TODO: Не знаю какой тут тип
+}
+
+func (h *Header) MakeMap() (map[string]any, error) {
+	result := make(map[string]any)
+
+	raw, err := json.Marshal(h)
+	if err != nil {
+		return nil, err
+	}
+
+	err = json.Unmarshal(raw, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(result)
+	return result, nil
 }
 
 type TimeLimit struct {

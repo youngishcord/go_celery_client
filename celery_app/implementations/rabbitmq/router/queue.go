@@ -1,4 +1,4 @@
-package queue
+package router
 
 import amqp "github.com/rabbitmq/amqp091-go"
 

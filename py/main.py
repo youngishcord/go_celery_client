@@ -17,6 +17,8 @@ app = celery.Celery(
 # app.conf.worker_concurrency = 1          # Количество процессов
 # app.conf.worker_optimization = 'fair'    # Включаем честное распределение
 
+print(app.control.ping())
+
 class CustomTask(Task):
     def __init__(self, name, *args, **kwargs):
         super(Task, self).__init__(*args, **kwargs)
@@ -28,8 +30,8 @@ def add(x, y):
     raise ValueError("custom")
     return x + y
 
-@app.task(name="test", queue="asdf")
-def test(message):
+@app.task(name="test", queue="testq1")
+def test(*message):
     print(message)
     return "YES"
 
@@ -46,22 +48,26 @@ def test2(*args, **kwargs):
 
 
 def pub_message():
+    pass
     
     # Базовая задача для теста через кастомный конструктор
     # while 1:
     # base_task = CustomTask("add").s().set(queue="asdf")
-    # res = base_task.delay(4, 2)
+    # res = base_task.apply_async(
+    #     args=[],
+    #     ignore_result=True 
+    #     )
     # print(res.get())
     
     # chain
-    t1 = CustomTask("add").s().set(queue="asdf")
-    t2 = CustomTask("pow").s().set(queue="asdf")
-    t3 = CustomTask("test_task3").s().set(queue="qwer")
+    # t1 = CustomTask("add").s().set(queue="asdf")
+    # t2 = CustomTask("pow").s().set(queue="asdf")
+    # t3 = CustomTask("test_task3").s().set(queue="qwer")
     
-    ch = chain(t1, t2, t3)
+    # ch = chain(t1, t2, t3)
     
-    res = ch.delay(1, 2).get()
-    print(res)
+    # res = ch.delay(1, 2)
+    # print(res)
     
     ####################################################
     ####################################################

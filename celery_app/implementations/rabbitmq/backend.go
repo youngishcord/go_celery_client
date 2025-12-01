@@ -58,7 +58,7 @@ func (b *Rabbit) PublishResult(ctx context.Context, result any, task protocol.Ce
 	}
 
 	// FIXME: Тут может случиться так, что выполнение не подтвердится, что тогда делать, я хз
-	err = b.Consumer.Ack(task.Properties.DeliveryTag, false)
+	err = b.Consumer.Ack(*task.Properties.DeliveryTag, false)
 	if err != nil {
 		return err
 	}
@@ -92,7 +92,7 @@ func (b *Rabbit) PublishException(ctx context.Context, exc *exceptions.Exception
 		fmt.Println(err)
 	}
 
-	err = b.Consumer.Ack(task.Properties.DeliveryTag, false)
+	err = b.Consumer.Ack(*task.Properties.DeliveryTag, false)
 	if err != nil {
 		return err
 	}

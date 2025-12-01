@@ -8,12 +8,12 @@ type DeliveryInfo struct {
 }
 
 type Properties struct {
-	CorrelationID uuid.UUID `json:"correlation_id"`
-	DeliveryTag   uint64    `json:"delivery_tag"`
+	CorrelationID uuid.UUID    `json:"correlation_id"`
+	ReplyTo       uuid.UUID    `json:"reply_to"`
+	DeliveryMode  uint8        `json:"delivery_mode"`
+	Priority      uint8        `json:"priority"`
+	DeliveryInfo  DeliveryInfo `json:"delivery_info"`
 
-	ReplyTo      uuid.UUID    `json:"reply_to,omitempty"`
-	DeliveryMode uint8        `json:"delivery_mode,omitempty"`
-	DeliveryInfo DeliveryInfo `json:"delivery_info,omitempty"`
-	Priority     uint8        `json:"priority,omitempty"`
-	BodyEncoding string       `json:"body_encoding,omitempty"` // content encoding
+	DeliveryTag  *uint64 `json:"delivery_tag,omitempty"`
+	BodyEncoding *string `json:"body_encoding,omitempty"` // content encoding
 }

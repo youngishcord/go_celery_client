@@ -26,7 +26,7 @@ func main() {
 		Worker: conf.WorkerSettings{
 			WorkerConcurrency: 2,
 		},
-		Queues: []string{"qwer", "asdf"},
+		Queues: []string{"qwer", "asdf", "testq1"},
 	})
 
 	err := app.RegisterTask("add", tasks.NewAddTask) // тут передается конструктор, который дергается каждый раз при получении задачи.
@@ -39,7 +39,11 @@ func main() {
 		return
 	}
 
-	// app.StartMessageDriver()
+	err = app.PublishTask()
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	err = app.RunWorker()
 	if err != nil {
 		fmt.Println(err)

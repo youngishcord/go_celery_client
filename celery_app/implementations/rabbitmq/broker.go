@@ -2,9 +2,9 @@ package rabbit
 
 import (
 	protocol "celery_client/celery_app/core/dto/protocol"
+	"celery_client/celery_app/implementations/rabbitmq/router"
 	"context"
 	"encoding/json"
-	"fmt"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -18,18 +18,29 @@ func (b *Rabbit) ConsumeTask() <-chan protocol.CeleryTask {
 func (b *Rabbit) PublishTask(ctx context.Context, celeryTask protocol.CeleryTask) error {
 
 	rawBody, err := json.Marshal(celeryTask.Body)
+	if err != nil {
+		return err
+	}
 
 	headers, err := celeryTask.Headers.MakeMap()
 	if err != nil {
 		return err
 	}
 
-	nextTask := celeryTask.Body.Emb.Chain[len(celeryTask.Body.Emb.Chain)-1]
+	// nextTask := celeryTask.Body.Emb.Chain[len(celeryTask.Body.Emb.Chain)-1]
 
-	b.Publisher.PublishWithContext(
-		ctx,
-		"",
-		celeryTask.Properties.ReplyTo.String(),
+	err = b.declareQueue(router.Queue{
+		Name:    celeryTask.Properties.DeliveryInfo.RoutingKey,
+		Durable: true,
+	})
+	if err != nil {
+		return err
+	}
+
+	err = b.Publisher.Publish(
+		// ctx,
+		celeryTask.Properties.DeliveryInfo.Exchange,
+		celeryTask.Properties.DeliveryInfo.RoutingKey,
 		false,
 		false,
 		amqp.Publishing{
@@ -40,24 +51,20 @@ func (b *Rabbit) PublishTask(ctx context.Context, celeryTask protocol.CeleryTask
 			ContentEncoding: celeryTask.ContentEncoding,
 			DeliveryMode:    celeryTask.Properties.DeliveryMode,
 			Priority:        celeryTask.Properties.Priority,
-			ReplyTo:         nextTask.Opt.ReplyTo,
-			Expiration:      "",
-			MessageId:       "",
-			Timestamp:       time.Time{},
-			Type:            "",
-			UserId:          "",
-			AppId:           "",
+			ReplyTo:         celeryTask.Properties.ReplyTo.String(),
+			// ReplyTo:         nextTask.Opt.ReplyTo,
+			Timestamp: time.Now().UTC(),
 		},
 	)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	return nil
 }
 
 // Ack basic acknowledge function for celery task
 func (b *Rabbit) Ack(task protocol.CeleryTask) error {
-	err := b.Consumer.Ack(task.Properties.DeliveryTag, false)
+	err := b.Consumer.Ack(*task.Properties.DeliveryTag, false)
 	if err != nil {
 		return err
 	}
@@ -66,7 +73,7 @@ func (b *Rabbit) Ack(task protocol.CeleryTask) error {
 
 // Reject basic reject function for celery task
 func (b *Rabbit) Reject(task protocol.CeleryTask, requeue bool) error {
-	err := b.Consumer.Reject(task.Properties.DeliveryTag, requeue)
+	err := b.Consumer.Reject(*task.Properties.DeliveryTag, requeue)
 	if err != nil {
 		return err
 	}
@@ -75,7 +82,7 @@ func (b *Rabbit) Reject(task protocol.CeleryTask, requeue bool) error {
 
 // Nack negatively acknowledges a delivery by its delivery tag.
 func (b *Rabbit) Nack(task protocol.CeleryTask, requeue bool) error {
-	err := b.Consumer.Nack(task.Properties.DeliveryTag, false, requeue)
+	err := b.Consumer.Nack(*task.Properties.DeliveryTag, false, requeue)
 	if err != nil {
 		return err
 	}

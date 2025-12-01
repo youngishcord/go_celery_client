@@ -1,97 +1,74 @@
 package main
 
 import (
-	"fmt"
-	"time"
+	"log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
+func failOnError(err error, msg string) {
+	if err != nil {
+		log.Fatalf("%s: %v", msg, err)
+	}
+}
+
 func main() {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5545/")
-	if err != nil {
-		panic(err)
-	}
+	failOnError(err, "connect")
+	defer conn.Close()
+
 	ch, err := conn.Channel()
-	if err != nil {
-		panic(err)
-	}
-	err = ch.Qos(
-		// prefetch count Этот параметр не даст мне получать больше задач, чем сейчас выполняются,
-		// следовательно, данный параметр должен быть настроен по количеству обработчиков
-		2,
-		0,     // prefetch size (0 means unlimited)
-		false, // global (false = per consumer, true = per channel)
+	failOnError(err, "open channel")
+	defer ch.Close()
+
+	// 1) объявляем exchange (например, direct)
+	err = ch.ExchangeDeclare(
+		"my_exchange", // имя exchange
+		"direct",      // тип
+		true,          // durable
+		false,         // auto-delete
+		false,         // internal
+		false,         // no-wait
+		nil,           // аргументы
 	)
+	failOnError(err, "declare exchange")
 
-	//pub, err := conn.Channel()
-	//if err != nil {
-	//	panic(err)
-	//}
+	// 2) объявляем очередь
+	q, err := ch.QueueDeclare(
+		"my_queue", // имя очереди
+		true,       // durable — чтобы очередь пережила рестарт RabbitMQ
+		false,      // auto-delete
+		false,      // exclusive
+		false,      // no-wait
+		nil,        // args
+	)
+	failOnError(err, "declare queue")
 
-	msgs, err := ch.Consume(
-		"qwer",
-		// TODO: тут надо сделать кастомное имя для консюмера из конфигурации
-		fmt.Sprintf("consumer_"), // index
-		false,                    // TODO: autoAck должен быть false по идее
-		false,
-		false,
+	// 3) привязываем очередь к exchange с routing key
+	err = ch.QueueBind(
+		q.Name,           // имя очереди
+		"my_routing_key", // routing key
+		"my_exchange",    // exchange
 		false,
 		nil,
 	)
-	if err != nil {
-		panic(err)
-	}
-	//msg := <-msgs
-	//fmt.Println(string(msg.Body))
+	failOnError(err, "bind queue")
 
-	tasks := make(chan amqp.Delivery)
+	// 4) Теперь очередь гарантированно существует — можно публиковать сообщения
+	body := []byte(`{"foo": "bar"}`) // JSON, например — тело задачи Celery
+	err = ch.Publish(
+		"",     // exchange
+		q.Name, // routing key
+		false, false,
+		amqp.Publishing{
+			ContentType:  "application/json",
+			Body:         body,
+			DeliveryMode: amqp.Persistent,
+		},
+	)
+	failOnError(err, "publish")
+	log.Println("Message published")
 
-	go func() {
-		for task := range tasks {
-			println("worker1")
-			println(string(task.Body))
-			println("Sleeping...")
-			time.Sleep(10 * time.Second)
-			println("next")
-			task.Ack(false)
-		}
-	}()
+	log.Println(q.Name)
 
-	go func() {
-		for task := range tasks {
-			println("worker2")
-			println(string(task.Body))
-			println("Sleeping...")
-			time.Sleep(8 * time.Second)
-			println("next")
-			task.Ack(false)
-		}
-	}()
-
-	for msg := range msgs {
-		tasks <- msg
-	}
-
-	//time.Sleep(10 * time.Second)
-
-	//err = ch.Ack(msg.DeliveryTag, false) // Ура так работает!
-	//if err != nil {
-	//	panic(err)
-	//}
-
-	//err = pub.Ack(msg.DeliveryTag, false) // Если канал не тот, из которого
-	//if err != nil {                       // пришло сообщение, то не работает!
-	//	panic(err)
-	//}
-
-	//err = ch.Reject(msg.DeliveryTag, true)
-	//if err != nil {
-	//	panic(err)
-	//}
-
-	//err = ch.Nack(msg.DeliveryTag, false, false)
-	//if err != nil {
-	//	panic(err)
-	//}
 }

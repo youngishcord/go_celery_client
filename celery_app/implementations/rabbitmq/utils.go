@@ -1,7 +1,7 @@
 package rabbit
 
 import (
-	q "celery_client/celery_app/implementations/rabbitmq/queue"
+	q "celery_client/celery_app/implementations/rabbitmq/router"
 	"fmt"
 
 	protocol "celery_client/celery_app/core/dto/protocol"
@@ -32,7 +32,7 @@ func NewTask(rawTask amqp.Delivery) protocol.CeleryTask {
 		Headers:         header,
 		Properties: protocol.Properties{
 			CorrelationID: correlationID,
-			DeliveryTag:   rawTask.DeliveryTag,
+			DeliveryTag:   &rawTask.DeliveryTag,
 			ReplyTo:       replyTo,
 			DeliveryMode:  rawTask.DeliveryMode,
 			DeliveryInfo: protocol.DeliveryInfo{
@@ -40,7 +40,7 @@ func NewTask(rawTask amqp.Delivery) protocol.CeleryTask {
 				RoutingKey: rawTask.RoutingKey,
 			},
 			Priority:     rawTask.Priority,
-			BodyEncoding: rawTask.ContentEncoding,
+			BodyEncoding: &rawTask.ContentEncoding,
 		},
 	}
 }
@@ -49,12 +49,16 @@ func (b *Rabbit) url() string {
 	return fmt.Sprintf("amqp://%s:%s@%s:%s/", b.user, b.pass, b.Host, b.Port)
 }
 
-func (b *Rabbit) declareQueue(queue q.Queue) {
-	if b.Consumer == nil {
-		panic("CHANNEL NOT OPEN")
+func (b *Rabbit) declareExchange() {
+
+}
+
+func (b *Rabbit) declareQueue(queue q.Queue) error {
+	if b.Publisher == nil {
+		return fmt.Errorf("NO CONSUMER")
 	}
 
-	_, err := b.Consumer.QueueDeclare(
+	_, err := b.Publisher.QueueDeclare(
 		queue.Name,
 		queue.Durable,
 		queue.AutoDelete,
@@ -63,7 +67,7 @@ func (b *Rabbit) declareQueue(queue q.Queue) {
 		queue.Args,
 	)
 	if err != nil {
-		panic("QUEUE WAS NOT DECLARED")
+		return err
 	}
-
+	return nil
 }

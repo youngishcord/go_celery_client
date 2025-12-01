@@ -9,12 +9,15 @@ import (
 	"celery_client/celery_app/implementations/redis_client"
 	"context"
 	"log"
+	"os"
 
 	// "context"
 	// "time"
 
 	result "celery_client/celery_app/message/result"
 	"fmt"
+
+	"github.com/google/uuid"
 )
 
 type Broker interface {
@@ -189,6 +192,61 @@ func (a *CeleryApp) startMessageDriver() {
 			}
 		}(i)
 	}
+}
+
+func (a *CeleryApp) PublishTask() error {
+	ctx := context.Background()
+
+	body := protocol.Body{
+		Args:   []any{9, 9},
+		Kwargs: map[string]any{},
+		Emb: protocol.Embed{
+			Callbacks: nil,
+			Errbacks:  nil,
+			Chain:     nil,
+			Chord:     nil,
+		},
+	}
+
+	// rawBody, err := json.Marshal(body)
+	// if err != nil {
+	// 	return err
+	// }
+
+	taskId := uuid.New()
+	replyTo := uuid.New()
+
+	task := protocol.CeleryTask{
+		ContentEncoding: "utf-8",
+		ContentType:     "application/json",
+		Body:            body,
+		Headers: protocol.Header{
+			Lang:         "py",
+			Task:         "test",
+			Id:           taskId,
+			RootId:       taskId,
+			Retries:      0,
+			ArgsRepr:     "()",
+			KwargsRepr:   "{}",
+			Origin:       fmt.Sprintf("%d@%s", os.Getegid(), "go-client"),
+			IgnoreResult: true,
+		},
+		Properties: protocol.Properties{
+			CorrelationID: taskId,
+			DeliveryMode:  2,
+			ReplyTo:       replyTo,
+			DeliveryInfo: protocol.DeliveryInfo{
+				Exchange:   "",
+				RoutingKey: "testq1",
+			},
+		},
+	}
+
+	err := a.Broker.PublishTask(ctx, task)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func NewBrokerAndBackend(conf conf.CeleryConf) (Broker, Backend) {

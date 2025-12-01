@@ -9,28 +9,28 @@ import (
 )
 
 type Header struct {
-	Lang       string    `json:"lang"`
-	Task       string    `json:"task"`
-	Id         uuid.UUID `json:"id"`
-	RootId     uuid.UUID `json:"root_id,omitempty"`
-	ParentId   uuid.UUID `json:"parent_id,omitempty"`
-	Group      uuid.UUID `json:"group,omitempty"`
-	GroupIndex uuid.UUID `json:"group_index,omitempty"`
+	Lang         string    `json:"lang"`
+	Task         string    `json:"task"`
+	Id           uuid.UUID `json:"id"`
+	RootId       uuid.UUID `json:"root_id"`
+	Retries      int       `json:"retries"`
+	ArgsRepr     string    `json:"argsrepr"`
+	KwargsRepr   string    `json:"kwargsrepr"`
+	Origin       string    `json:"origin"`
+	IgnoreResult bool      `json:"ignore_result"`
 
-	// optional
-	Meth                string         `json:"meth,omitempty"`
-	Shadow              string         `json:"shadow,omitempty"`
-	ETA                 *time.Time     `json:"eta,omitempty"`
-	Expires             *time.Time     `json:"expires,omitempty"`
-	Retries             int            `json:"retries,omitempty"`
-	TimeLimit           *TimeLimit     `json:"timelimit,omitempty"`
-	ArgsRepr            string         `json:"argsrepr,omitempty"`
-	KwargsRepr          string         `json:"kwargsrepr,omitempty"`
-	Origin              string         `json:"origin,omitempty"`
-	ReplacedTaskNesting int            `json:"replaced_task_nesting,omitempty"`
-	IgnoreResult        bool           `json:"ignore_result,omitempty"`
-	StampedHeaders      any            `json:"stamped_headers,omitempty"` // TODO: Не знаю какой тут тип
-	Stamps              map[string]any `json:"stamps,omitempty"`          // TODO: Не знаю какой тут тип
+	// Optional
+	ParentId            *uuid.UUID      `json:"parent_id,omitempty"`
+	Group               *uuid.UUID      `json:"group,omitempty"`
+	GroupIndex          *uuid.UUID      `json:"group_index,omitempty"`
+	Meth                *string         `json:"meth,omitempty"`
+	Shadow              *string         `json:"shadow,omitempty"`
+	ETA                 *time.Time      `json:"eta,omitempty"`
+	Expires             *time.Time      `json:"expires,omitempty"`
+	TimeLimit           *TimeLimit      `json:"timelimit,omitempty"`
+	ReplacedTaskNesting *int            `json:"replaced_task_nesting,omitempty"`
+	StampedHeaders      *any            `json:"stamped_headers,omitempty"` // TODO: Не знаю какой тут тип
+	Stamps              *map[string]any `json:"stamps,omitempty"`          // TODO: Не знаю какой тут тип
 }
 
 func (h *Header) MakeMap() (map[string]any, error) {
@@ -83,22 +83,22 @@ func ParseHeader(data map[string]interface{}) (Header, error) {
 
 	if parentIdStr, ok := data["parent_id"].(string); ok {
 		if id, err := uuid.Parse(parentIdStr); err == nil {
-			header.ParentId = id
+			header.ParentId = &id
 		}
 	}
 
 	if grIdStr, ok := data["group"].(string); ok {
 		if id, err := uuid.Parse(grIdStr); err == nil {
-			header.Group = id
+			header.Group = &id
 		}
 	}
 
 	if meth, ok := data["meth"].(string); ok {
-		header.Meth = meth
+		header.Meth = &meth
 	}
 
 	if shadow, ok := data["shadow"].(string); ok {
-		header.Shadow = shadow
+		header.Shadow = &shadow
 	}
 
 	if etaStr, ok := data["eta"].(string); ok {
@@ -141,11 +141,12 @@ func ParseHeader(data map[string]interface{}) (Header, error) {
 	}
 
 	if nesting, ok := data["replaced_task_nesting"].(float64); ok {
-		header.ReplacedTaskNesting = int(nesting)
+		tmp := int(nesting)
+		header.ReplacedTaskNesting = &tmp
 	}
 
 	if nesting, ok := data["replaced_task_nesting"].(int); ok {
-		header.ReplacedTaskNesting = nesting
+		header.ReplacedTaskNesting = &nesting
 	}
 
 	return header, nil

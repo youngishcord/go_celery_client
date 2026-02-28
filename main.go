@@ -1,45 +1,33 @@
 package main
 
 import (
-	celery "celery_client/celery_app/app"
-	conf "celery_client/celery_app/celery_conf"
-	tasks "celery_client/celery_app/tasks"
-	"fmt"
+	"go_celery_client/celery/app"
+	"go_celery_client/celery/config"
+	example "go_celery_client/celery/examples/tasks"
+	"time"
 )
 
 func main() {
-
-	app := celery.NewCeleryApp(conf.CeleryConf{
-		Broker: conf.BrokerSettings{
-			BrokerType: "RabbitMQ",
-			ConnectionData: conf.Connection{
-				Host: "localhost",
-				Port: "5545",
-				User: "guest",
-				Pass: "guest",
-			},
-		},
-		Backend: conf.BackendSettings{
-			BackendType:    "RPC", //"Redis", //
-			ConnectionData: conf.Connection{},
-		},
-		Worker: conf.WorkerSettings{
+	app, err := celery_app.NewCeleryApp(config.CeleryConfig{
+		Broker: config.BrokerSettings{},
+		Worker: config.WorkerSettings{
 			WorkerConcurrency: 2,
 		},
-		Queues: []string{"qwer", "asdf"},
+		Queues: nil,
 	})
+	if err != nil {
+		panic(err)
+	}
 
-	err := app.RegisterTask("add", tasks.NewAddTask) // тут передается конструктор, который дергается каждый раз при получении задачи.
+	app.RegisterTask("add", example.NewAddTask)
+
+	// TODO: graceful shutdown and stop chan
+	err = app.Start()
 	if err != nil {
 		return
 	}
 
-	// app.StartMessageDriver()
-	err = app.RunWorker()
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	exitCh := make(chan int)
-	<-exitCh
+	time.Sleep(2 * time.Second)
+	execCh := make(chan struct{})
+	<-execCh
 }

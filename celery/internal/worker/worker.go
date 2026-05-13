@@ -33,14 +33,15 @@ func (w *CeleryWorker) Start() error {
 	fmt.Println("Starting Celery worker ", w.index)
 	for {
 		select {
-		case task, ok := <-w.app.Consume():
+		case t, ok := <-w.app.Consume():
 			fmt.Println("worker ", w.index, " receive task: ", ok)
-			fmt.Println(task)
-			err := w.processTask(task)
+			fmt.Println(t)
+			err := w.processTask(t)
 			if err != nil {
 				log.Fatal(err)
 			}
 		case <-w.closeCh:
+			log.Println(fmt.Sprintf("Worker %d stopped", w.index))
 			return nil
 		}
 	}

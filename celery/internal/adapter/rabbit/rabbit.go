@@ -4,6 +4,7 @@ import (
 	"go_celery_client/celery/config"
 	rabbit "go_celery_client/celery/pkg/broker/rabbit"
 	"go_celery_client/celery/protocol"
+	"log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -27,13 +28,13 @@ func NewRabbitAdapter(client *rabbit.Client, settings config.BrokerSettings) (*R
 
 	sub, err := client.Conn().Channel()
 	if err != nil {
-		panic("NO_RABBITMQ_CONSUMER_CHANNEL_OPEN")
+		log.Fatalln("NO_RABBITMQ_CONSUMER_CHANNEL_OPEN")
 	}
 	adapter.ConsumeCh = sub
 
 	pub, err := client.Conn().Channel()
 	if err != nil {
-		panic("NO_RABBITMQ_PUBLISHER_CHANNEL_OPEN")
+		log.Fatalln("NO_RABBITMQ_PUBLISHER_CHANNEL_OPEN")
 	}
 	adapter.PublishCh = pub
 
@@ -43,7 +44,7 @@ func NewRabbitAdapter(client *rabbit.Client, settings config.BrokerSettings) (*R
 		settings.Qos.Global,        // global (false = per consumer, true = per channel)
 	)
 	if err != nil {
-		panic("BAD_QOS_SETTINGS")
+		log.Fatalln("BAD_QOS_SETTINGS")
 	}
 
 	return &adapter, nil

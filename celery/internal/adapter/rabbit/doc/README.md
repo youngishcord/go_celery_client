@@ -21,4 +21,6 @@ rabbitmq.com
 
 Форма полезной нагрузки ответа. Celery ожидает сериализованный JSON с метаданными состояния, например:
 
+```
 {"status":"SUCCESS","result": <ваш_результат>, "traceback": null, "task_id": "<id>", "children": []}
+```

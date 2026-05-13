@@ -1,11 +1,16 @@
 package broker
 
 import (
+	"log"
+
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type Client struct {
-	conn   *amqp.Connection
+	conn        *amqp.Connection
+	notifyChan  chan *amqp.Error
+	notifyBlock chan amqp.Blocking
+
 	config Config
 }
 
@@ -16,9 +21,12 @@ func NewClient(config Config) (*Client, error) {
 
 	conn, err := amqp.Dial(config.Url())
 	if err != nil {
-		panic("NO_RABBITMQ_CONNECTION")
+		log.Fatalln("NO_RABBITMQ_CONNECTION")
 	}
 	client.conn = conn
+
+	client.notifyChan = conn.NotifyClose(make(chan *amqp.Error))
+	client.notifyBlock = conn.NotifyBlocked(make(chan amqp.Blocking))
 
 	return client, nil
 }

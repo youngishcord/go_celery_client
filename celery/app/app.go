@@ -14,7 +14,7 @@ import (
 type Broker interface {
 	Consume() <-chan *protocol.CeleryTask
 	Publish() error
-	Start([]string) error
+	Start(queues []string) error
 	Ack(*protocol.CeleryTask) error
 }
 
@@ -45,10 +45,10 @@ type CeleryApp struct {
 func NewCeleryApp(conf config.CeleryConfig) (CeleryApp, error) {
 	rabbitClient, err := rabbit.NewClient(rabbit.Config{
 		Host: "localhost",
-		Port: "5672",
+		Port: "5545",
 		User: rabbit.User{
-			Username: "admin",
-			Password: "admin",
+			Username: "guest",
+			Password: "guest",
 		},
 	})
 	if err != nil {

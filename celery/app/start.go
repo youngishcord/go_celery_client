@@ -5,6 +5,7 @@ import (
 	"log"
 )
 
+// Start запускает пул воркеров
 func (a *CeleryApp) Start() error {
 	err := a.broker.Start([]string{"test"})
 	if err != nil {

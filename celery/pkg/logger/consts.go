@@ -17,6 +17,7 @@ type (
 	Value          = slog.Value
 	HandlerOptions = slog.HandlerOptions
 	LogValuer      = slog.LogValuer
+	Record         = slog.Record
 )
 
 var (

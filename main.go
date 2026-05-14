@@ -1,37 +1,61 @@
 package main
 
 import (
-	"go_celery_client/celery/app"
-	"go_celery_client/celery/config"
-	example "go_celery_client/celery/examples/tasks"
-	"log"
-	"time"
+	"context"
+	"go_celery_client/celery/pkg/logger"
+	"log/slog"
+	"sync"
 )
 
 func main() {
-	app, err := celery_app.NewCeleryApp(config.CeleryConfig{
-		Broker: config.BrokerSettings{},
-		Worker: config.WorkerSettings{
-			WorkerConcurrency: 2,
-		},
-		Queues: nil,
-	})
-	if err != nil {
-		panic(err)
+	logger := logger.NewLogger()
+	ctx := context.Background()
+
+	logger.InfoContext(ctx, "service started", slog.String("env", "dev"))
+
+	var wg sync.WaitGroup
+	for i := 0; i < 5; i++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+
+			for j := 0; j < 2000; j++ {
+				logger.InfoContext(ctx,
+					"worker event",
+					slog.Int("worker_id", id),
+					slog.Int("step", j),
+				)
+				//time.Sleep(100 * time.Millisecond)
+			}
+		}(i)
 	}
 
-	err = app.RegisterTask("add", example.NewAddTask)
-	if err != nil {
-		log.Fatalln("Failed task registration: ", err)
-	}
+	wg.Wait()
+	logger.Info("service stopped")
 
-	// TODO: graceful shutdown and stop chan
-	err = app.Start()
-	if err != nil {
-		return
-	}
-
-	time.Sleep(2 * time.Second)
-	execCh := make(chan struct{})
-	<-execCh
+	//app, err := celery_app.NewCeleryApp(config.CeleryConfig{
+	//	Broker: config.BrokerSettings{},
+	//	Worker: config.WorkerSettings{
+	//		WorkerConcurrency: 2,
+	//	},
+	//	Queues: nil,
+	//})
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//err = app.RegisterTask("add", example.NewAddTask)
+	//if err != nil {
+	//	log.Fatalln("Failed task registration: ", err)
+	//}
+	//
+	//// TODO: graceful shutdown and stop chan
+	//err = app.Start()
+	//if err != nil {
+	//	return
+	//}
+	//
+	//time.Sleep(2 * time.Second)
+	//execCh := make(chan struct{})
+	//<-execCh
 }

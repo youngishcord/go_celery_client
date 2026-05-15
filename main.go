@@ -13,13 +13,18 @@ func main() {
 
 	logger.InfoContext(ctx, "service started", slog.String("env", "dev"))
 
+	logger.Info("text", map[string]any{
+		"env":  "prod",
+		"test": 1234,
+	})
+
 	var wg sync.WaitGroup
 	for i := 0; i < 5; i++ {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
 
-			for j := 0; j < 2000; j++ {
+			for j := 0; j < 3; j++ {
 				logger.InfoContext(ctx,
 					"worker event",
 					slog.Int("worker_id", id),

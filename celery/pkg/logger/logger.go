@@ -2,49 +2,106 @@ package logger
 
 import (
 	"io"
-	"log/slog"
 	"os"
 
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-type Option func(*Logger)
+const (
+	defaultLevel             = LevelInfo
+	defaultStdOut            = true
+	defaultAddSource         = true
+	defaultSetDefault        = true
+	defaultToFile            = false
+	defaultLogFile           = "celery.log"
+	defaultLogFileMaxSizeMB  = 10
+	defaultLogFileMaxBackups = 5
+	defaultLogFileMaxAgeDays = 14
+	defaultLogFileCompress   = true
+)
+
+type LoggerOptions struct {
+	Level             Level
+	StdOut            bool
+	AddSource         bool
+	SetDefault        bool
+	ToFile            bool
+	LogFilePath       string
+	LogFileMaxSizeMB  int
+	LogFileMaxBackups int
+	LogFileMaxAgeDays int
+	LogFileCompress   bool
+	ProcessName       string
+}
+
+type Option func(*LoggerOptions)
 
 func NewLogger(options ...Option) *Logger {
-
-	rotator := &lumberjack.Logger{
-		Filename:   "app.log",
-		MaxSize:    1, // MB
-		MaxBackups: 2,
-		MaxAge:     7, // days
-		Compress:   false,
+	cfg := &LoggerOptions{
+		Level:             defaultLevel,
+		StdOut:            defaultStdOut,
+		AddSource:         defaultAddSource,
+		SetDefault:        defaultSetDefault,
+		ToFile:            defaultToFile,
+		LogFilePath:       defaultLogFile,
+		LogFileMaxSizeMB:  defaultLogFileMaxSizeMB,
+		LogFileMaxBackups: defaultLogFileMaxBackups,
+		LogFileMaxAgeDays: defaultLogFileMaxAgeDays,
+		LogFileCompress:   defaultLogFileCompress,
 	}
 
-	multi := io.MultiWriter(os.Stdout, rotator)
+	for _, opt := range options {
+		opt(cfg)
+	}
 
-	handler := slog.NewJSONHandler(multi, &slog.HandlerOptions{
-		Level:     slog.LevelInfo,
-		AddSource: true,
+	var w []io.Writer
+
+	if cfg.ToFile {
+		rotation := &lumberjack.Logger{
+			Filename:   cfg.LogFilePath,
+			MaxSize:    cfg.LogFileMaxSizeMB, // MB
+			MaxBackups: cfg.LogFileMaxBackups,
+			MaxAge:     cfg.LogFileMaxAgeDays, // days
+			Compress:   cfg.LogFileCompress,
+		}
+
+		w = append(w, rotation)
+	}
+
+	if cfg.StdOut {
+		w = append(w, os.Stdout)
+	}
+
+	writer := io.MultiWriter(w...)
+
+	//handler := slog.NewJSONHandler(writer, &slog.HandlerOptions{
+	//	Level:     slog.LevelInfo,
+	//	AddSource: true,
+	//})
+
+	h := NewCeleryHandler(writer, HandlerOptions{
+		Level:       cfg.Level,
+		AddSource:   cfg.AddSource,
+		ProcessName: cfg.ProcessName,
 	})
 
-	return slog.New(handler)
+	logger := New(h)
 
-}
-
-func WithIsJson() Option {
-	return func(l *Logger) {
-		l.Debug("text")
+	if cfg.SetDefault {
+		SetDefault(logger)
 	}
+
+	return logger
 }
 
-func WithOutput(output io.Writer) Option {
-	return func(l *Logger) {
-
+func NoStdOutput(output io.Writer) Option {
+	return func(l *LoggerOptions) {
+		l.StdOut = false
 	}
 }
 
 func WithRotationWriter(cfg RotationConfig) Option {
-	return func(l *Logger) {
-		NewRotatingWriter(cfg)
+	return func(l *LoggerOptions) {
+		l.ToFile = true
 	}
 }

@@ -10,14 +10,13 @@ const (
 )
 
 type (
-	Logger         = slog.Logger
-	Attr           = slog.Attr
-	Level          = slog.Level
-	Handler        = slog.Handler
-	Value          = slog.Value
-	HandlerOptions = slog.HandlerOptions
-	LogValuer      = slog.LogValuer
-	Record         = slog.Record
+	Logger    = slog.Logger
+	Attr      = slog.Attr
+	Level     = slog.Level
+	Handler   = slog.Handler
+	Value     = slog.Value
+	LogValuer = slog.LogValuer
+	Record    = slog.Record
 )
 
 var (

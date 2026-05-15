@@ -2,9 +2,11 @@ package logger
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log/slog"
+	"reflect"
 	"runtime"
 	"strings"
 	"sync"
@@ -154,7 +156,19 @@ func formatAttr(key string, val Value) string {
 	case slog.KindTime:
 		return fmt.Sprintf("%s=%s", key, val.Time().Format(time.RFC3339))
 	default:
-		return fmt.Sprintf("%s=%v", key, val.Any())
+		v := val.Any()
+		if v == nil {
+			return fmt.Sprintf("%s=null", key)
+		}
+		rv := reflect.ValueOf(v)
+		switch rv.Kind() {
+		case reflect.Map, reflect.Slice, reflect.Array, reflect.Struct:
+			b, err := json.Marshal(v)
+			if err == nil {
+				return fmt.Sprintf("%s=%s", key, string(b))
+			}
+		}
+		return fmt.Sprintf("%s=%v", key, v)
 	}
 }
 

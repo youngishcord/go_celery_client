@@ -1,4 +1,4 @@
-package celery_app
+package app
 
 import (
 	"go_celery_client/celery/internal/worker"
@@ -7,7 +7,7 @@ import (
 
 // Start запускает пул воркеров
 func (a *CeleryApp) Start() error {
-	err := a.broker.Start([]string{"test"})
+	err := a.broker.Start([]string{"qwer"}) // TODO: queues
 	if err != nil {
 		return err
 	}

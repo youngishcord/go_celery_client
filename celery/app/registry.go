@@ -1,4 +1,4 @@
-package celery_app
+package app
 
 import (
 	"fmt"

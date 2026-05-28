@@ -1,4 +1,4 @@
-package celery_app
+package app
 
 import (
 	"context"
@@ -10,9 +10,6 @@ func (a *CeleryApp) Consume() <-chan *protocol.CeleryTask {
 }
 
 func (a *CeleryApp) PublishResult(ctx context.Context, result any, celeryTask *protocol.CeleryTask) error {
-	//fmt.Println("publish result")
-	//fmt.Println("result", result)
-	//fmt.Println("celeryTask", celeryTask)
 
 	err := a.broker.Ack(celeryTask)
 	if err != nil {

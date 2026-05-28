@@ -1,4 +1,4 @@
-package celery_app
+package app
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"go_celery_client/celery/protocol"
 )
 
-// MakeTask получает на вход параметры, находит конструктор задачи, фармирует
+// MakeTask получает на вход параметры, находит конструктор задачи, формирует
 // структуру и возвращает ее для дальнейшей обработки.
 func (a *CeleryApp) MakeTask(ctx context.Context, task *protocol.CeleryTask) (task.Task, error) {
 	constructor, ok := a.taskRegistry[task.Headers.Task]

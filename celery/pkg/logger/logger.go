@@ -11,7 +11,7 @@ const (
 	defaultLevel             = LevelInfo
 	defaultStdOut            = true
 	defaultAddSource         = true
-	defaultSetDefault        = true
+	defaultSetDefault        = false
 	defaultToFile            = false
 	defaultLogFile           = "celery.log"
 	defaultLogFileMaxSizeMB  = 10
@@ -103,5 +103,11 @@ func NoStdOutput(output io.Writer) Option {
 func WithRotationWriter(cfg RotationConfig) Option {
 	return func(l *LoggerOptions) {
 		l.ToFile = true
+	}
+}
+
+func WithSetDefault() Option {
+	return func(l *LoggerOptions) {
+		l.SetDefault = true
 	}
 }

@@ -2,9 +2,10 @@ package worker
 
 import (
 	"context"
-	e "go_celery_client/celery/internal/errors"
+	"fmt"
 	"go_celery_client/celery/protocol"
 	"log"
+	"runtime/debug"
 )
 
 func (w *CeleryWorker) processTask(celeryTask *protocol.CeleryTask) error {
@@ -13,6 +14,19 @@ func (w *CeleryWorker) processTask(celeryTask *protocol.CeleryTask) error {
 
 	softCtx, softCancel := MakeContext(hardCtx, celeryTask.Headers.TimeLimit.Soft)
 	defer softCancel()
+
+	defer func() {
+		var err error
+		if r := recover(); r != nil {
+			err := fmt.Errorf("panic: %v\nstack: %s", r, debug.Stack())
+			log.Println(err)
+		}
+
+		if err != nil {
+			log.Println(err)
+			// TODO: fail task
+		}
+	}()
 
 	task, err := w.app.MakeTask(hardCtx, celeryTask)
 	if err != nil {
@@ -48,6 +62,7 @@ func (w *CeleryWorker) processTask(celeryTask *protocol.CeleryTask) error {
 	if err != nil {
 		log.Println(err)
 	}
+
 	return nil
 }
 
@@ -56,9 +71,15 @@ func RunWithTimeout(softCtx context.Context, hardCtx context.Context, fn func(ct
 	errCh := make(chan error)
 
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				errCh <- fmt.Errorf("panic: %v\nstack: %s", r, debug.Stack())
+			}
+		}()
 		res, err := fn(softCtx)
 		if err != nil {
 			errCh <- err
+			return
 		}
 		done <- res
 	}()
@@ -68,9 +89,9 @@ func RunWithTimeout(softCtx context.Context, hardCtx context.Context, fn func(ct
 		return res, nil
 	case err := <-errCh:
 		return nil, err
-	case <-softCtx.Done():
-		return nil, e.ErrSoftTimeLimitExceeded
-	case <-hardCtx.Done():
-		return nil, e.ErrSoftTimeLimitExceeded
+		//case <-softCtx.Done():
+		//	return nil, e.ErrSoftTimeLimitExceeded
+		//case <-hardCtx.Done():
+		//	return nil, e.ErrHardTimeLimitExceeded
 	}
 }

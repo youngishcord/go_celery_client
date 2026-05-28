@@ -30,15 +30,15 @@ func NewCeleryWorker(index int, app App, closeCh <-chan struct{}) (*CeleryWorker
 }
 
 func (w *CeleryWorker) Start() error {
-	fmt.Println("Starting Celery worker ", w.index)
+	log.Println("Starting Celery worker ", w.index)
 	for {
 		select {
 		case t, ok := <-w.app.Consume():
-			fmt.Println("worker ", w.index, " receive task: ", ok)
-			fmt.Println(t)
+			log.Println("worker ", w.index, " receive task: ", ok)
+			log.Println(t)
 			err := w.processTask(t)
 			if err != nil {
-				log.Fatal(err)
+				log.Println(err)
 			}
 		case <-w.closeCh:
 			log.Println(fmt.Sprintf("Worker %d stopped", w.index))

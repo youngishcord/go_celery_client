@@ -1,4 +1,4 @@
-package celery_app
+package app
 
 import (
 	"context"
@@ -45,10 +45,10 @@ type CeleryApp struct {
 func NewCeleryApp(conf config.CeleryConfig) (CeleryApp, error) {
 	rabbitClient, err := rabbit.NewClient(rabbit.Config{
 		Host: "localhost",
-		Port: "5545",
+		Port: "5672",
 		User: rabbit.User{
-			Username: "guest",
-			Password: "guest",
+			Username: "admin",
+			Password: "admin",
 		},
 	})
 	if err != nil {

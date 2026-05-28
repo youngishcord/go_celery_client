@@ -5,7 +5,8 @@ import (
 	"go_celery_client/celery/config"
 	examples "go_celery_client/celery/examples/tasks"
 	"go_celery_client/celery/pkg/logger"
-	"log"
+	"go_celery_client/celery/protocol"
+	"go_celery_client/celery/task"
 	"time"
 )
 
@@ -25,20 +26,12 @@ func main() {
 		panic(err)
 	}
 
-	err = app.RegisterTask("add", examples.NewAddTask)
-	if err != nil {
-		log.Fatalln("Failed task registration: ", err)
-	}
-
-	err = app.RegisterTask("panic", examples.NewPanicTask)
-	if err != nil {
-		log.Fatalln("Failed task registration: ", err)
-	}
-
-	err = app.RegisterTask("inf", examples.NewInfTask)
-	if err != nil {
-		log.Fatalln("Failed task registration: ", err)
-	}
+	err = app.RegisterTasks(map[string]func(task *protocol.CeleryTask) (task.Task, error){
+		"add":   examples.NewAddTask,
+		"panic": examples.NewPanicTask,
+		"inf":   examples.NewInfTask,
+		"err":   examples.NewErrorTask,
+	})
 
 	// TODO: graceful shutdown and stop chan
 	err = app.Start()

@@ -3,9 +3,8 @@ package tasks
 import (
 	"context"
 	"errors"
-	"go_celery_client/celery/internal/task"
 	"go_celery_client/celery/protocol"
-	"time"
+	"go_celery_client/celery/task"
 )
 
 type AddTask struct {
@@ -33,7 +32,7 @@ func NewAddTask(rawTask *protocol.CeleryTask) (task.Task, error) {
 }
 
 func (t *AddTask) Run(ctx context.Context) (any, error) {
-	time.Sleep(7 * time.Second)
+	//time.Sleep(7 * time.Second)
 	return t.a + t.b, nil
 }
 

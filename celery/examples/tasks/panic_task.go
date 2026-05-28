@@ -2,8 +2,8 @@ package tasks
 
 import (
 	"context"
-	"go_celery_client/celery/internal/task"
 	"go_celery_client/celery/protocol"
+	"go_celery_client/celery/task"
 )
 
 type PanicTask struct{}

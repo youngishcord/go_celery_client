@@ -26,6 +26,7 @@ app = Celery(
 add = Task("add").s().set(queue="qwer")
 panic = Task("panic").s().set(queue="qwer")
 inf = Task("inf").s().set(queue="qwer")
+err = Task("err").s().set(queue="qwer")
 
 # inf.apply_async(time_limit=5)
 

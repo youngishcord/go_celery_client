@@ -3,8 +3,8 @@ package app
 import (
 	"context"
 	e "go_celery_client/celery/internal/errors"
-	"go_celery_client/celery/internal/task"
 	"go_celery_client/celery/protocol"
+	"go_celery_client/celery/task"
 )
 
 // MakeTask получает на вход параметры, находит конструктор задачи, формирует

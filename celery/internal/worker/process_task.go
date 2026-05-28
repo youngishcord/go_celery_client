@@ -3,6 +3,8 @@ package worker
 import (
 	"context"
 	"fmt"
+	"go_celery_client/celery/internal/errors"
+	"go_celery_client/celery/internal/exceptions"
 	"go_celery_client/celery/protocol"
 	"log"
 	"runtime/debug"
@@ -30,37 +32,39 @@ func (w *CeleryWorker) processTask(celeryTask *protocol.CeleryTask) error {
 
 	task, err := w.app.MakeTask(hardCtx, celeryTask)
 	if err != nil {
-		log.Println("TASK NOT FOUND")
-		//err = w.app..PublishException(
-		//	context.Background(),
-		//	exceptions.GetException(e.ErrNotRegistered,
-		//		[]string{celeryTask.Headers.Task}),
-		//	celeryTask,
-		//	"test trace",
-		//)
-		//if err != nil {
-		//	log.Println(err)
-		//}
+		e := w.app.PublishException(
+			softCtx,
+			exceptions.GetException(errors.ErrNotRegistered, []string{celeryTask.Headers.Task}),
+			celeryTask,
+			"",
+		)
+		if e != nil {
+			return e
+		}
 		return err
 	}
 
 	taskResult, err := RunWithTimeout(softCtx, hardCtx, task.Run)
 	if err != nil {
-		//err := a.Backend.PublishException(
-		//	context.Background(), // Что тут делать с контекстом?
-		//	exceptions.GetException(err, []string{}),
-		//	celeryTask,
-		//	"test trace",
-		//)
-		//if err != nil {
-		//	log.Println(err)
-		//}
+		e := w.app.PublishException(
+			softCtx,
+			exceptions.GetException(err, []string{err.Error(), celeryTask.Headers.Task}),
+			celeryTask,
+			"",
+		)
+		if e != nil {
+			return e
+		}
 		return err
 	}
 
 	err = w.app.PublishResult(softCtx, taskResult, celeryTask)
 	if err != nil {
-		log.Println(err)
+		e := w.app.PublishException(softCtx, "", celeryTask, "")
+		if e != nil {
+			return e
+		}
+		return err
 	}
 
 	return nil

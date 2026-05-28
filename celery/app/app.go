@@ -4,9 +4,9 @@ import (
 	"context"
 	"go_celery_client/celery/config"
 	"go_celery_client/celery/internal/adapter/rabbit"
-	"go_celery_client/celery/internal/task"
 	rabbit "go_celery_client/celery/pkg/broker/rabbit"
 	"go_celery_client/celery/protocol"
+	"go_celery_client/celery/task"
 	"sync"
 )
 
@@ -21,7 +21,7 @@ type Broker interface {
 // Backend отвечает за работу с результатами задач
 type Backend interface {
 	PublishResult(ctx context.Context, result any, celeryTask *protocol.CeleryTask) error
-	PublishException() error
+	PublishException(ctx context.Context, result any, celeryTask *protocol.CeleryTask, trace string) error
 }
 
 type WorkerPool struct {

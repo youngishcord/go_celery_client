@@ -1,15 +1,19 @@
 package exceptions
 
 type ExceptionInfo struct {
-	ExceptionType    string   `json:"exc_type"`
-	ExceptionMessage []string `json:"exc_message"` // TODO: Точно ли тут всегда будут строки.
-	ExceptionModule  string   `json:"exc_module"`
+	ExceptionType    string         `json:"exc_type"`
+	ExceptionMessage []string       `json:"exc_message"`
+	ExceptionModule  string         `json:"exc_module"`
+	Args             []any          `json:"args"`
+	Kwargs           map[string]any `json:"kwargs"`
 }
 
-func NewExceptionInfo(excType string, excMessage []string, excModule string) *ExceptionInfo {
+func NewExceptionInfo(excType string, excMessage []string, excModule string, args []any, kwargs map[string]any) *ExceptionInfo {
 	return &ExceptionInfo{
 		ExceptionType:    excType,
 		ExceptionMessage: excMessage,
-		ExceptionModule:  excModule, // TODO: Нужны какие то кастомные записи, или builtin??
+		ExceptionModule:  excModule,
+		Args:             args,
+		Kwargs:           kwargs,
 	}
 }

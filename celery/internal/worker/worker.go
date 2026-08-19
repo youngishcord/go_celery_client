@@ -30,13 +30,13 @@ func NewCeleryWorker(index int, app App, closeCh <-chan struct{}) (*CeleryWorker
 	}, nil
 }
 
+// Start запуск основного цикла воркера
 func (w *CeleryWorker) Start() error {
 	log.Println("Starting Celery worker ", w.index)
 	for {
 		select {
 		case t, ok := <-w.app.Consume():
-			log.Println("worker ", w.index, " receive task: ", ok)
-			log.Println(t)
+			log.Println("worker ", w.index, " receive task: ", ok, "body", t)
 			err := w.processTask(t)
 			if err != nil {
 				log.Println(err)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"go_celery_client/celery/config"
 	"go_celery_client/celery/internal/adapter/rabbit"
+	"go_celery_client/celery/internal/exceptions"
 	rabbit "go_celery_client/celery/pkg/broker/rabbit"
 	"go_celery_client/celery/protocol"
 	"go_celery_client/celery/task"
@@ -36,6 +37,8 @@ type CeleryApp struct {
 	// TaskRegistry хранит список зарегистрированных задач для исполнения. Регистрируется по имени
 	taskRegistry map[string]func(task *protocol.CeleryTask) (task.Task, error)
 	workerPool   *WorkerPool
+
+	exceptionRegistry map[string]exceptions.BaseException
 
 	conf config.CeleryConfig
 

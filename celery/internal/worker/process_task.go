@@ -34,7 +34,7 @@ func (w *CeleryWorker) processTask(celeryTask *protocol.CeleryTask) error {
 	if err != nil {
 		e := w.app.PublishException(
 			softCtx,
-			exceptions.GetException(errors.ErrNotRegistered, []string{celeryTask.Headers.Task}),
+			exceptions.GetException(errors.ErrNotRegistered, []string{celeryTask.Headers.Task}, nil, nil),
 			celeryTask,
 			"",
 		)
@@ -48,7 +48,7 @@ func (w *CeleryWorker) processTask(celeryTask *protocol.CeleryTask) error {
 	if err != nil {
 		e := w.app.PublishException(
 			softCtx,
-			exceptions.GetException(err, []string{err.Error(), celeryTask.Headers.Task}),
+			exceptions.GetException(err, []string{err.Error(), celeryTask.Headers.Task}, nil, nil),
 			celeryTask,
 			"",
 		)
@@ -73,6 +73,8 @@ func (w *CeleryWorker) processTask(celeryTask *protocol.CeleryTask) error {
 func RunWithTimeout(softCtx context.Context, hardCtx context.Context, fn func(ctx2 context.Context) (any, error)) (any, error) {
 	done := make(chan any)
 	errCh := make(chan error)
+	defer close(done)
+	defer close(errCh)
 
 	go func() {
 		defer func() {

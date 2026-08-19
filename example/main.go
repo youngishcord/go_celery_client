@@ -1,12 +1,13 @@
 package main
 
 import (
+	ex "celery_client/celery_app/core/exceptions"
 	app "go_celery_client/celery/app"
 	"go_celery_client/celery/config"
-	examples "go_celery_client/celery/examples/tasks"
 	"go_celery_client/celery/pkg/logger"
 	"go_celery_client/celery/protocol"
 	"go_celery_client/celery/task"
+	"go_celery_client/example/tasks"
 	"time"
 )
 
@@ -27,11 +28,13 @@ func main() {
 	}
 
 	err = app.RegisterTasks(map[string]func(task *protocol.CeleryTask) (task.Task, error){
-		"add":   examples.NewAddTask,
-		"panic": examples.NewPanicTask,
-		"inf":   examples.NewInfTask,
-		"err":   examples.NewErrorTask,
+		"add":   tasks.NewAddTask,
+		"panic": tasks.NewPanicTask,
+		"inf":   tasks.NewInfTask,
+		"err":   tasks.NewErrorTask,
 	})
+
+	err = ex.RegisterNewExceptions()
 
 	// TODO: graceful shutdown and stop chan
 	err = app.Start()

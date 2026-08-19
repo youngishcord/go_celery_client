@@ -30,5 +30,16 @@ err = Task("err").s().set(queue="qwer")
 
 # inf.apply_async(time_limit=5)
 
+def send_and_parse_exception_task():
+    try:
+        e = err.delay().get()
+    except Exception as e:
+        print(e)
+        print(type(e))
+        print("test")
+        print(type("test"))
+
+
+
 con = code.interact(banner="Welcome to celery tester client!", local=locals())
 con.interact()

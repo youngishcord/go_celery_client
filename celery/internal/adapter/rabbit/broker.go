@@ -39,7 +39,7 @@ func (a *RabbitAdapter) Start(q []string) error {
 			}
 
 			for msg := range msgs {
-				task, err := NewTask(msg)
+				task, err := newTask(msg)
 				if err != nil {
 					msg.Nack(false, true)
 					log.Fatalf("Failed to create a task: %s", err)

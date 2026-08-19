@@ -21,7 +21,7 @@ services:
     networks:
       - compose-network
     ports:
-      - "6379:6379"
+      - "6378:6379"
       - "8001:8001"
 
 

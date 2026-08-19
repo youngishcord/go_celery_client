@@ -7,8 +7,8 @@ import (
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-// NewTask create a Celery task from a raw amqp protocol
-func NewTask(rawTask amqp.Delivery) (*protocol.CeleryTask, error) {
+// newTask create a Celery task from a raw amqp protocol
+func newTask(rawTask amqp.Delivery) (*protocol.CeleryTask, error) {
 	body, err := protocol.ParsePayload(rawTask.Body)
 	if err != nil {
 		return nil, err

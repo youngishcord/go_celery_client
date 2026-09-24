@@ -3,8 +3,8 @@ package app
 import (
 	"context"
 	"go_celery_client/celery/config"
+	"go_celery_client/celery/exceptions"
 	"go_celery_client/celery/internal/adapter/rabbit"
-	"go_celery_client/celery/internal/exceptions"
 	rabbit "go_celery_client/celery/pkg/broker/rabbit"
 	"go_celery_client/celery/protocol"
 	"go_celery_client/celery/task"
@@ -38,7 +38,7 @@ type CeleryApp struct {
 	taskRegistry map[string]func(task *protocol.CeleryTask) (task.Task, error)
 	workerPool   *WorkerPool
 
-	exceptionRegistry map[string]exceptions.BaseException
+	exceptionRegistry *exceptions.ExceptionRegistry
 
 	conf config.CeleryConfig
 
@@ -68,10 +68,11 @@ func NewCeleryApp(conf config.CeleryConfig) (CeleryApp, error) {
 	}
 
 	return CeleryApp{
-		broker:       rabbitAdapter,
-		backend:      rabbitAdapter, // FIXME: нужно распределение
-		taskRegistry: map[string]func(task *protocol.CeleryTask) (task.Task, error){},
-		conf:         conf,
+		broker:            rabbitAdapter,
+		backend:           rabbitAdapter, // FIXME: нужно распределение
+		taskRegistry:      map[string]func(task *protocol.CeleryTask) (task.Task, error){},
+		exceptionRegistry: exceptions.NewExceptionRegistry(),
+		conf:              conf,
 		workerPool: &WorkerPool{
 			closeCh: make(chan struct{}),
 		},

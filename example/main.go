@@ -1,9 +1,9 @@
 package main
 
 import (
-	ex "celery_client/celery_app/core/exceptions"
 	app "go_celery_client/celery/app"
 	"go_celery_client/celery/config"
+	"go_celery_client/celery/exceptions"
 	"go_celery_client/celery/pkg/logger"
 	"go_celery_client/celery/protocol"
 	"go_celery_client/celery/task"
@@ -34,7 +34,13 @@ func main() {
 		"err":   tasks.NewErrorTask,
 	})
 
-	err = ex.RegisterNewExceptions()
+	err = app.RegisterException(tasks.ErrCustom, exceptions.BaseException{
+		ExceptionType:   "ValueError",
+		ExceptionModule: "builtins",
+	})
+	if err != nil {
+		panic(err)
+	}
 
 	// TODO: graceful shutdown and stop chan
 	err = app.Start()

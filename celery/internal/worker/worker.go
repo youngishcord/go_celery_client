@@ -3,6 +3,7 @@ package worker
 import (
 	"context"
 	"fmt"
+	"go_celery_client/celery/exceptions"
 	"go_celery_client/celery/protocol"
 	"go_celery_client/celery/task"
 	"log"
@@ -13,6 +14,7 @@ type App interface {
 	PublishResult(ctx context.Context, result any, celeryTask *protocol.CeleryTask) error
 	PublishException(ctx context.Context, result any, celeryTask *protocol.CeleryTask, trace string) error
 	MakeTask(ctx context.Context, task *protocol.CeleryTask) (task.Task, error)
+	ExceptionInfo(err error, message []string, args []any, kwargs map[string]any) *exceptions.ExceptionInfo
 }
 
 type CeleryWorker struct {

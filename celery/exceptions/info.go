@@ -4,8 +4,8 @@ type ExceptionInfo struct {
 	ExceptionType    string         `json:"exc_type"`
 	ExceptionMessage []string       `json:"exc_message"`
 	ExceptionModule  string         `json:"exc_module"`
-	Args             []any          `json:"args"`
-	Kwargs           map[string]any `json:"kwargs"`
+	Args             []any          `json:"args,omitempty"`
+	Kwargs           map[string]any `json:"kwargs,omitempty"`
 }
 
 func NewExceptionInfo(excType string, excMessage []string, excModule string, args []any, kwargs map[string]any) *ExceptionInfo {
